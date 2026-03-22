@@ -22,7 +22,6 @@ const REVIEW_ACTIONS = [
 
 // ── Submit review panel ───────────────────────────────────────────────────────
 function SubmitReviewPanel({ reviewId }) {
-  const [open, setOpen] = useState(false)
   const [event, setEvent] = useState('COMMENT')
   const [body, setBody] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -36,7 +35,6 @@ function SubmitReviewPanel({ reviewId }) {
       const res = await api.submitReview(reviewId, event, body)
       setSubmitted(res)
       setBody('')
-      setOpen(false)
     } catch (e) {
       setError(e.message)
     } finally {
@@ -46,64 +44,56 @@ function SubmitReviewPanel({ reviewId }) {
 
   if (submitted) {
     return (
-      <div className="px-3 py-2.5 bg-green-50 border-b border-green-200 text-xs text-green-700 flex items-center gap-2">
-        <span>Review submitted — {submitted.state?.toLowerCase()}</span>
-        {submitted.html_url && (
-          <a href={submitted.html_url} target="_blank" rel="noopener noreferrer" className="underline">view on GitHub</a>
-        )}
-        <button onClick={() => setSubmitted(null)} className="ml-auto text-green-500 hover:text-green-700">✕</button>
-      </div>
-    )
-  }
-
-  if (!open) {
-    return (
-      <div className="px-3 py-2 border-b border-gray-200">
-        <button
-          onClick={() => setOpen(true)}
-          className="w-full text-xs py-1.5 bg-gray-900 text-white rounded hover:bg-gray-800"
-        >
-          Submit Review
+      <div className="flex flex-col items-center justify-center h-full gap-4 px-8 text-center">
+        <div className="p-4 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700 w-full max-w-md">
+          <p>Review submitted — {submitted.state?.toLowerCase()}</p>
+          {submitted.html_url && (
+            <a href={submitted.html_url} target="_blank" rel="noopener noreferrer" className="underline text-xs mt-2 block">
+              view on GitHub
+            </a>
+          )}
+        </div>
+        <button onClick={() => setSubmitted(null)} className="text-xs text-gray-400 hover:text-gray-600 underline">
+          submit another
         </button>
       </div>
     )
   }
 
   return (
-    <div className="px-3 py-3 border-b border-gray-200 space-y-2">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Submit Review</h3>
-        <button onClick={() => setOpen(false)} className="text-xs text-gray-400 hover:text-gray-600">✕</button>
+    <div className="flex flex-col items-center justify-center h-full px-8">
+      <div className="w-full max-w-md space-y-4">
+        <h2 className="text-sm font-semibold text-gray-900">Submit Review to GitHub</h2>
+        <div className="flex gap-2 flex-wrap">
+          {REVIEW_ACTIONS.map(({ event: e, label, cls }) => (
+            <button
+              key={e}
+              onClick={() => setEvent(e)}
+              className={`text-sm px-4 py-2 rounded-lg border font-medium transition-colors ${cls}
+                ${event === e ? 'ring-2 ring-offset-1 ring-gray-400' : ''}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <textarea
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          placeholder={event === 'REQUEST_CHANGES' ? 'Describe required changes… (required)' : 'Overall comment (optional)'}
+          rows={5}
+          className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg resize-y
+            focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+        />
+        {error && <p className="text-sm text-red-500">{error}</p>}
+        <button
+          onClick={handleSubmit}
+          disabled={submitting || (event === 'REQUEST_CHANGES' && !body.trim())}
+          className="w-full py-2.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800
+            disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          {submitting ? 'Submitting…' : `Submit ${event === 'APPROVE' ? 'Approval' : event === 'REQUEST_CHANGES' ? 'Request' : 'Comment'}`}
+        </button>
       </div>
-      <div className="flex gap-1.5 flex-wrap">
-        {REVIEW_ACTIONS.map(({ event: e, label, cls }) => (
-          <button
-            key={e}
-            onClick={() => setEvent(e)}
-            className={`text-xs px-2.5 py-1 rounded border font-medium transition-colors ${cls}
-              ${event === e ? 'ring-2 ring-offset-1 ring-gray-400' : ''}`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-      <textarea
-        value={body}
-        onChange={(e) => setBody(e.target.value)}
-        placeholder={event === 'REQUEST_CHANGES' ? 'Describe required changes… (required)' : 'Overall comment (optional)'}
-        rows={3}
-        className="w-full text-xs px-2 py-1.5 border border-gray-300 rounded resize-none
-          focus:outline-none focus:ring-1 focus:ring-gray-900"
-      />
-      {error && <p className="text-xs text-red-500">{error}</p>}
-      <button
-        onClick={handleSubmit}
-        disabled={submitting || (event === 'REQUEST_CHANGES' && !body.trim())}
-        className="w-full text-xs py-1.5 bg-gray-900 text-white rounded hover:bg-gray-800
-          disabled:opacity-40 disabled:cursor-not-allowed"
-      >
-        {submitting ? 'Submitting…' : `Submit ${event === 'APPROVE' ? 'Approval' : event === 'REQUEST_CHANGES' ? 'Request' : 'Comment'}`}
-      </button>
     </div>
   )
 }
@@ -742,9 +732,18 @@ export default function ReviewInstance() {
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar */}
         <aside className="w-64 bg-white border-r border-gray-200 flex flex-col overflow-hidden shrink-0">
-          {!isActive && review.status !== 'ERROR' && (
-            <SubmitReviewPanel reviewId={id} />
-          )}
+          <div className="p-2 border-b border-gray-200">
+            <button
+              onClick={() => setTab('overview')}
+              className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors
+                ${tab === 'overview'
+                  ? 'bg-gray-900 text-white'
+                  : 'hover:bg-gray-100 text-gray-700'
+                }`}
+            >
+              Overview
+            </button>
+          </div>
           <div className="px-3 pt-3 pb-2">
             <div className="flex items-center justify-between px-1 mb-2">
               <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
@@ -805,16 +804,18 @@ export default function ReviewInstance() {
             >
               Re-review
             </button>
-            <button
-              onClick={() => setTab('overview')}
-              className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors mt-0.5
-                ${tab === 'overview'
-                  ? 'bg-gray-900 text-white'
-                  : 'hover:bg-gray-100 text-gray-700'
-                }`}
-            >
-              Overview
-            </button>
+            {!isActive && review.status !== 'ERROR' && (
+              <button
+                onClick={() => setTab('submit')}
+                className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors mt-0.5
+                  ${tab === 'submit'
+                    ? 'bg-gray-900 text-white'
+                    : 'hover:bg-gray-100 text-gray-700'
+                  }`}
+              >
+                Submit Review
+              </button>
+            )}
           </div>
         </aside>
 
@@ -823,6 +824,7 @@ export default function ReviewInstance() {
           {/* Center: diff / overview / threads */}
           <div className="flex-1 overflow-y-auto">
             {tab === 'overview' && <OverviewPanel review={review} />}
+            {tab === 'submit' && <SubmitReviewPanel reviewId={id} />}
             {tab === 'threads' && (
               <ThreadsPanel
                 threads={threads}
