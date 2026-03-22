@@ -16,73 +16,9 @@ from app.ai.claude import (
     _parse_chunk_plan,
     _validate_and_anchor_comments,
 )
+from app.ai.prompts import get_prompt
 
 logger = logging.getLogger(__name__)
-
-_PLAN_CHUNKS_SYSTEM = """\
-You are a senior software engineer structuring a code review session for a human reviewer.
-
-Given all changed files in a PR, group them into logical review chunks that should be reviewed together.
-Think about: what features/concerns do these files implement? What context does a reviewer need first?
-
-Return ONLY valid JSON — no other text, no markdown fences:
-{
-  "chunks": [
-    {
-      "title": "short descriptive title (e.g., 'Auth middleware refactor')",
-      "purpose": "1-2 sentences: what this chunk achieves and why these files belong together",
-      "walkthrough": "2-4 sentences: how to approach reviewing this chunk — what the change is trying to do, what patterns to look for, what to be careful about",
-      "summary": "3-6 markdown bullet points (- item) of what actually changed",
-      "files": ["path/to/file1", "path/to/file2"],
-      "review_order": ["path/to/file2", "path/to/file1"]
-    }
-  ]
-}
-
-Rules:
-- Every changed file must appear in exactly one chunk
-- Order chunks so the reviewer builds context progressively (foundations before features, models before routes, etc.)
-- review_order within a chunk = best reading order (e.g., interfaces before implementations)
-- 1-6 files per chunk; use judgment over rigid limits
-- If only 1-3 files changed total, one chunk is fine"""
-
-_PR_SUMMARY_SYSTEM = """\
-You are a senior software engineer performing a code review.
-Given a pull request, provide a concise markdown summary with:
-1. A 2-3 sentence overview of what this PR does and why.
-2. A bullet list of the key changes.
-3. A brief "Areas to watch" section with any concerns or things that need attention.
-You have access to the repository files — read them for full context if needed.
-Keep it factual and useful for a reviewer skimming before diving in."""
-
-_CHUNK_REVIEW_SYSTEM = """\
-You are a senior software engineer reviewing a specific set of file changes (a "chunk") in a pull request.
-You have access to the full repository — read the files to understand context beyond the diff.
-
-Respond ONLY with valid JSON matching this schema exactly:
-{
-  "assessment": "<markdown string: overall assessment of this chunk>",
-  "comments": [
-    {
-      "path": "<file path>",
-      "line": <new-file line number as integer>,
-      "side": "RIGHT",
-      "body": "<markdown review comment body>"
-    }
-  ]
-}
-
-Rules:
-- Only comment on lines that exist in the provided diff (additions and context lines on the RIGHT side).
-- Each comment must be specific and actionable.
-- Limit to the most important 3-5 issues. Do not nitpick style unless critical.
-- If there are no issues, return an empty comments array and a positive assessment.
-- Return ONLY the JSON object, no other text."""
-
-_CHAT_SYSTEM = """\
-You are a code review assistant helping a developer refine their review comments.
-You have access to the repository files — read them if needed for better context.
-Help the user craft clear, specific, and constructive review comments. Be direct and concise."""
 
 _PLAN_CHUNKS_SCHEMA = {
     "type": "object",
@@ -244,7 +180,7 @@ class CodexProvider(AIProvider):
             if repo_path else ""
         )
         prompt = (
-            f"{_PLAN_CHUNKS_SYSTEM}{repo_note}\n\n"
+            f"{get_prompt('plan_chunks')}\n\nReturn ONLY valid JSON — no other text, no markdown fences.{repo_note}\n\n"
             f"PR: {pr_data.get('title','')}\n"
             f"Description: {pr_data.get('body') or '(none)'}\n\n"
             f"Changed files ({len(files)}):\n\n{file_context}"
@@ -267,7 +203,7 @@ class CodexProvider(AIProvider):
             if repo_path else ""
         )
         prompt = (
-            f"{_PR_SUMMARY_SYSTEM}{repo_note}\n\n"
+            f"{get_prompt('pr_summary')}{repo_note}\n\n"
             f"PR Title: {pr_data.get('title', '')}\n\n"
             f"PR Description:\n{pr_data.get('body') or '(no description)'}\n\n"
             f"Files changed ({len(files)}):\n{file_list}"
@@ -288,7 +224,7 @@ class CodexProvider(AIProvider):
             if repo_path else ""
         )
         prompt = (
-            f"{_CHUNK_REVIEW_SYSTEM}{repo_note}\n\n"
+            f"{get_prompt('chunk_review')}\n\nRespond ONLY with valid JSON. Return ONLY the JSON object, no other text.{repo_note}\n\n"
             f"Chunk: {chunk_title}\n\n"
             f"Commentable lines per file (only comment on these): {json.dumps(commentable)}\n\n"
             f"Diffs:\n{diff_ctx}"
@@ -315,7 +251,7 @@ class CodexProvider(AIProvider):
             if repo_path else ""
         )
         prompt = (
-            f"{_CHAT_SYSTEM}{repo_note}\n\n"
+            f"{get_prompt('chat')}{repo_note}\n\n"
             f"Chunk diff context:\n{chunk_context}\n\n"
             f"Conversation so far:\n{history}\n\n"
             f"[Assistant]:"
@@ -351,7 +287,7 @@ class CodexProvider(AIProvider):
         ) or "None."
 
         prompt = f"""\
-You are re-reviewing a pull request that was previously reviewed.
+{get_prompt('re_review')}
 
 PR: {pr_data.get('title','')}
 Description: {pr_data.get('body') or '(none)'}
@@ -364,12 +300,6 @@ OPEN REVIEW THREADS (inline comments from reviewers):
 
 GENERAL PR DISCUSSION COMMENTS:
 {issue_ctx}
-
-Please:
-1. Write a concise markdown summary of what changed since the last review (2-5 bullet points). If no new changes, say so.
-2. For each open review thread listed above, decide:
-   - should_resolve: true if the concern was addressed in the new changes or is no longer relevant; false if it still needs attention or a response
-   - reason: 1-sentence explanation
 
 Return ONLY valid JSON matching the schema."""
 

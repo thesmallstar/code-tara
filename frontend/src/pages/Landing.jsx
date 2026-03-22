@@ -323,6 +323,9 @@ export default function Landing() {
           <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">v0 · your ai reviewer</span>
         </div>
         <div className="flex items-center gap-3">
+          <button onClick={() => navigate('/prompts')} className="text-xs text-gray-400 hover:text-gray-600 underline">
+            prompts
+          </button>
           <GitHubStatus state={ghStatus.state} username={ghStatus.username} status={ghStatus.state} />
           <button onClick={checkGitHub} className="text-xs text-gray-400 hover:text-gray-600 underline">
             re-check
