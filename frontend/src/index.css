@@ -7,6 +7,15 @@
 
 * {
   box-sizing: border-box;
+  cursor: default;
+}
+
+button, a, [role="button"], select, label[for], summary, [onclick] {
+  cursor: pointer;
+}
+
+input, textarea {
+  cursor: text;
 }
 
 body {
