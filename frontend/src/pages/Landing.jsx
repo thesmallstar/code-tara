@@ -616,7 +616,7 @@ export default function Landing() {
           </div>
 
           {/* ── Recent reviews ── */}
-          <div className="px-8 py-8">
+          <div className="px-8 py-8 min-h-[400px]">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">Recent Reviews</h2>
               <button
