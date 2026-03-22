@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
+import MarkdownWithMermaid from './MarkdownWithMermaid'
 import { api } from '../lib/api'
 
 function Message({ msg }) {
@@ -17,7 +18,7 @@ function Message({ msg }) {
           <p className="whitespace-pre-wrap">{msg.content}</p>
         ) : (
           <div className="prose text-sm">
-            <ReactMarkdown>{msg.content}</ReactMarkdown>
+            <MarkdownWithMermaid>{msg.content}</MarkdownWithMermaid>
           </div>
         )}
       </div>

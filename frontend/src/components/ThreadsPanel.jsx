@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
+import MarkdownWithMermaid from './MarkdownWithMermaid'
 import { api } from '../lib/api'
 
 // Group flat thread list into {root, replies[]} structures
@@ -70,7 +71,7 @@ function TaraMessage({ msg }) {
           <p className="whitespace-pre-wrap">{msg.content}</p>
         ) : (
           <div className="prose prose-sm">
-            <ReactMarkdown>{msg.content}</ReactMarkdown>
+            <MarkdownWithMermaid>{msg.content}</MarkdownWithMermaid>
           </div>
         )}
       </div>
