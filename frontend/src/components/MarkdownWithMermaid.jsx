@@ -1,7 +1,13 @@
 import ReactMarkdown from 'react-markdown'
 import Mermaid from './Mermaid'
 
-function CodeBlock({ className, children }) {
+function CodeBlock({ node, className, children, ...props }) {
+  const isInline = !className && node?.position?.start?.line === node?.position?.end?.line
+
+  if (isInline) {
+    return <code {...props}>{children}</code>
+  }
+
   const lang = className?.replace('language-', '')
   const code = String(children).replace(/\n$/, '')
 
