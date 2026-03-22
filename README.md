@@ -8,6 +8,11 @@
 
 Paste a GitHub PR link → tara reads the whole diff, groups changes into logical review chunks, writes a walkthrough for each one, suggests inline comments you can edit and post directly to GitHub, and lets you chat with it about any part of the code.
 
+![Landing page — paste a PR link, see requested and recent reviews](docs/screenshot-landing.png)
+
+![Review overview — tara's summary with mermaid diagrams](docs/screenshot-overview.png)
+
+![Chunk review — diff view, inline comments, chat with tara](docs/screenshot-review.png)
 
 ---
 
