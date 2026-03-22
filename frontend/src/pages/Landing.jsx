@@ -447,7 +447,7 @@ export default function Landing() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="h-screen bg-white flex flex-col overflow-hidden">
       {/* Header */}
       <header className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -462,9 +462,9 @@ export default function Landing() {
         </div>
       </header>
 
-      <div className="flex-1 flex">
+      <div className="flex-1 flex overflow-hidden">
         {/* Left: new review form */}
-        <div className="w-full max-w-md px-10 py-12 border-r border-gray-100 shrink-0">
+        <div className="w-full max-w-md px-10 py-12 border-r border-gray-100 shrink-0 overflow-y-auto">
           <div className="flex items-center gap-3 mb-2">
             <img src="/logo.png" alt="tara" className="w-10 h-10" />
             <h1 className="text-2xl font-semibold text-gray-900">hey, I'm tara 👋</h1>
