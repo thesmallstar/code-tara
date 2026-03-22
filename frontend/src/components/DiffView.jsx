@@ -149,20 +149,22 @@ function InlineDraftPopover({ draft, onUpdate }) {
   )
 }
 
-function DiffLineRow({ line, commentableLine, onCommentClick, draftsForLine, expandedLines, onToggleDraft, onDraftUpdate }) {
+function DiffLineRow({ line, commentableLine, onCommentClick, draftsForLine, expandedLines, onToggleDraft, onDraftUpdate, isHighlighted, filePath }) {
   const isCommentable = commentableLine && line.newLine !== null
   const hasDraft = draftsForLine && draftsForLine.length > 0
   const isExpanded = hasDraft && expandedLines?.has(line.newLine)
+  const lineId = line.newLine !== null ? `diff-${filePath}-${line.newLine}` : undefined
 
   return (
     <>
       <tr
+        id={lineId}
         className={`group ${
           line.type === 'addition' ? 'diff-addition' :
           line.type === 'deletion' ? 'diff-deletion' :
           line.type === 'hunk'     ? 'diff-hunk' :
           'diff-context'
-        }`}
+        } ${isHighlighted ? 'diff-highlight' : ''}`}
       >
         <td className="select-none px-3 text-right w-12 border-r border-gray-200 text-gray-400 text-xs mono">
           {line.oldLine ?? ''}
@@ -205,7 +207,7 @@ function DiffLineRow({ line, commentableLine, onCommentClick, draftsForLine, exp
   )
 }
 
-function FileDiff({ path, patch, lineMap, onAddComment, drafts, onDraftUpdate }) {
+function FileDiff({ path, patch, lineMap, onAddComment, drafts, onDraftUpdate, highlightedLine }) {
   const [collapsed, setCollapsed] = useState(false)
   const [expandedLines, setExpandedLines] = useState(new Set())
   const lines = parsePatch(patch)
@@ -257,6 +259,8 @@ function FileDiff({ path, patch, lineMap, onAddComment, drafts, onDraftUpdate })
                   expandedLines={expandedLines}
                   onToggleDraft={toggleDraft}
                   onDraftUpdate={onDraftUpdate}
+                  filePath={path}
+                  isHighlighted={highlightedLine && highlightedLine.path === path && highlightedLine.line === line.newLine}
                 />
               ))}
             </tbody>
@@ -270,7 +274,7 @@ function FileDiff({ path, patch, lineMap, onAddComment, drafts, onDraftUpdate })
   )
 }
 
-export default function DiffView({ diffContent, lineMap, onAddComment, drafts, onDraftUpdate }) {
+export default function DiffView({ diffContent, lineMap, onAddComment, drafts, onDraftUpdate, highlightedLine }) {
   const entries = Object.entries(diffContent || {})
   if (!entries.length) {
     return <p className="text-sm text-gray-400 italic">No diff content available.</p>
@@ -292,6 +296,7 @@ export default function DiffView({ diffContent, lineMap, onAddComment, drafts, o
           onAddComment={onAddComment}
           drafts={draftsByPath[path] || []}
           onDraftUpdate={onDraftUpdate}
+          highlightedLine={highlightedLine}
         />
       ))}
     </div>
