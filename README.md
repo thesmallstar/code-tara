@@ -1,7 +1,3 @@
-> ⚠️ **Vibecoded** — this project was built fast with AI assistance. It works, but expect rough edges. Review the code before deploying anywhere sensitive. PRs and issues very welcome.
-
----
-
 <div align="center">
   <img src="docs/logo.png" alt="code-tara logo" width="120" />
 </div>
@@ -12,11 +8,6 @@
 
 Paste a GitHub PR link → tara reads the whole diff, groups changes into logical review chunks, writes a walkthrough for each one, suggests inline comments you can edit and post directly to GitHub, and lets you chat with it about any part of the code.
 
-![Landing page — paste a PR link and see recent reviews](docs/screenshot-landing.png)
-
-![Review instance — tara's take on the PR](docs/screenshot-review.png)
-
-![Chunk view — walkthrough, diff, chat, and draft comments](docs/screenshot-chunk.png)
 
 ---
 
@@ -167,3 +158,5 @@ MIT — see [LICENSE](LICENSE).
 ---
 
 > **on the name** — *tara* (तारा) means star in Sanskrit. Like the Dhruv Tara (Pole Star) — the constant guiding light — code-tara is your guiding star for code reviews.
+
+> ⚠️ **Vibecoded** — this project was built fast with AI assistance. It works, but expect rough edges. Review the code before deploying anywhere sensitive. PRs and issues very welcome.
