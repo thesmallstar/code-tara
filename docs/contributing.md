@@ -18,7 +18,9 @@ Contributions are welcome — whether it's a bug fix, a new feature, better prom
 backend/app/
 ├── ai/
 │   ├── base.py              ← AIProvider abstract class (5 abstract methods)
-│   └── claude.py            ← ClaudeProvider (subprocess → claude CLI)
+│   ├── claude.py            ← ClaudeProvider (subprocess → claude CLI)
+│   ├── codex.py             ← CodexProvider (subprocess → codex CLI)
+│   └── prompts.py           ← Shared prompt store (defaults + JSON file overrides)
 ├── github/
 │   ├── client.py            ← GitHub REST API calls
 │   ├── diff_parser.py       ← Unified diff → commentable line map
@@ -27,10 +29,11 @@ backend/app/
 │   ├── service.py           ← Orchestrates the full review pipeline
 │   └── re_review_service.py ← Re-review background task
 ├── routers/
-│   ├── reviews.py
+│   ├── reviews.py           ← search + pagination support
 │   ├── chunks.py
 │   ├── threads.py
 │   ├── re_reviews.py        ← POST create + GET poll
+│   ├── prompts.py           ← GET/PUT/DELETE /api/prompts/{key}
 │   └── github.py            ← review requests sync/cache
 ├── models.py                ← SQLAlchemy ORM
 ├── schemas.py               ← Pydantic schemas
@@ -42,11 +45,13 @@ frontend/src/
 │   └── ReviewInstance.jsx   ← chunk view + threads + re-review tab
 ├── components/
 │   ├── ChunkList.jsx
-│   ├── DiffView.jsx
+│   ├── DiffView.jsx          ← inline draft indicators (💬) with edit/send/delete
 │   ├── ChatPanel.jsx
 │   ├── DraftComments.jsx
-│   ├── ThreadsPanel.jsx     ← colored diff hunks, outdated badge, resolve
-│   └── StatusBadge.jsx
+│   ├── ThreadsPanel.jsx      ← colored diff hunks, outdated badge, resolve
+│   ├── StatusBadge.jsx
+│   ├── Mermaid.jsx            ← renders mermaid code fences as SVG diagrams
+│   └── MarkdownWithMermaid.jsx ← ReactMarkdown wrapper with mermaid support
 └── lib/api.js               ← HTTP client
 
 backend/tests/
@@ -55,6 +60,7 @@ backend/tests/
 ├── test_github.py
 ├── test_threads.py          ← resolve toggle
 ├── test_re_reviews.py       ← re-review create/poll, cache deletion
+├── test_prompts.py          ← prompt store + API (16 tests)
 └── test_helpers.py
 ```
 
@@ -83,10 +89,13 @@ The `repo_path` is a `Path` to the locally cloned repo. Pass it as the `cwd` for
 
 ## Improving prompts
 
-All prompts live inside the AI provider files (`backend/app/ai/claude.py`). They're just Python strings. Some tips:
+All prompts live in `backend/app/ai/prompts.py` as a shared store with hardcoded defaults. Users can override them at runtime via the Instructions tab (stored in `data/prompts.json`). Both Claude and Codex providers read prompts from this shared store — no duplication.
 
+Tips:
+- Only edit the natural language instructions — JSON schemas and output format enforcement are appended by the provider code and should not be in the prompt text
 - `plan_chunks` returns structured JSON — if you change the schema, update `ReviewChunk` in `models.py` and `schemas.py` too
 - `review_chunk` returns `{assessment, comments: [{path, line, side, body}]}` — the line anchoring in `reviews/service.py` depends on this shape
+- Prompts can include mermaid diagram suggestions — the frontend renders them automatically
 - Test with small PRs first (< 5 files, < 200 lines changed) to iterate quickly
 
 ---
@@ -113,9 +122,8 @@ Use conventional commits (loosely):
 
 - [ ] **More test coverage** — `diff_parser.py`, the re-review service, and the chunker are under-tested
 - [ ] **GitLab / Bitbucket support** — the GitHub client is abstracted enough that a new `GitProvider` interface would work
-- [ ] **Additional AI providers** — Codex (OpenAI), Gemini, local Ollama models
+- [ ] **Additional AI providers** — Gemini, local Ollama models
 - [ ] **GitHub App** — so tara can run automatically on new PRs via webhook
-- [ ] **Prompt tuning** — better chunk plans, better inline comment suggestions
 - [ ] **Mobile / smaller viewport** — the layout assumes a wide screen
 - [ ] **Theming** — dark mode, per-user preferences
 
