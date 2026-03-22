@@ -597,6 +597,7 @@ export default function ReviewInstance() {
   const [review, setReview] = useState(null)
   const [threads, setThreads] = useState([])
   const [tab, setTab] = useState(location.state?.tab || 'overview')   // 'overview' | 'chunk' | 'threads' | 're-review'
+  const [rightPanelTab, setRightPanelTab] = useState('drafts')       // 'drafts' | 'chat'
   const [selectedChunk, setSelectedChunk] = useState(null)
   const [draftTrigger, setDraftTrigger] = useState(0)
   const [error, setError] = useState(null)
@@ -820,17 +821,39 @@ export default function ReviewInstance() {
             )}
           </div>
 
-          {/* Right panel: Chat + Drafts (only when a chunk is selected) */}
+          {/* Right panel: Drafts | Chat tabs (only when a chunk is selected) */}
           {tab === 'chunk' && selectedChunk && (
             <div className="w-80 border-l border-gray-200 flex flex-col bg-white overflow-hidden shrink-0">
-              <div className="flex-1 overflow-hidden flex flex-col" style={{ maxHeight: '55%' }}>
-                <ChatPanel chunkId={selectedChunk.id} />
+              <div className="flex border-b border-gray-200 shrink-0">
+                {[
+                  { key: 'drafts', label: 'Drafts' },
+                  { key: 'chat', label: 'Chat' },
+                ].map(({ key, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => setRightPanelTab(key)}
+                    className={`flex-1 text-xs py-2 font-medium border-b-2 transition-colors -mb-px
+                      ${rightPanelTab === key
+                        ? 'border-gray-900 text-gray-900'
+                        : 'border-transparent text-gray-400 hover:text-gray-600'
+                      }`}
+                  >
+                    {label}
+                  </button>
+                ))}
               </div>
-              <div className="border-t border-gray-200 overflow-y-auto" style={{ maxHeight: '45%' }}>
-                <DraftComments
-                  chunkId={selectedChunk.id}
-                  trigger={draftTrigger}
-                />
+              <div className="flex-1 overflow-hidden flex flex-col">
+                {rightPanelTab === 'drafts' && (
+                  <div className="flex-1 overflow-y-auto">
+                    <DraftComments
+                      chunkId={selectedChunk.id}
+                      trigger={draftTrigger}
+                    />
+                  </div>
+                )}
+                {rightPanelTab === 'chat' && (
+                  <ChatPanel chunkId={selectedChunk.id} />
+                )}
               </div>
             </div>
           )}
