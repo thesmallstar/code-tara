@@ -86,7 +86,7 @@ export default function ChatPanel({ chunkId, onDraftFromChat }) {
       <div className="flex-1 overflow-y-auto px-3 py-3 bg-gray-50">
         {messages.length === 0 ? (
           <p className="text-xs text-gray-400 text-center italic mt-4">
-            ask tara to explain a tarage, flag an issue, or help write a comment.
+            ask tara to explain a change, flag an issue, or help write a comment.
           </p>
         ) : (
           messages.map((m, i) => <Message key={m.id ?? i} msg={m} />)

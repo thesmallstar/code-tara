@@ -7,6 +7,19 @@
 
 * {
   box-sizing: border-box;
+  cursor: default;
+}
+
+button, a, [role="button"], select, label[for], summary, [onclick] {
+  cursor: pointer;
+}
+
+button *, a *, [role="button"] * {
+  cursor: inherit;
+}
+
+input, textarea {
+  cursor: text;
 }
 
 body {

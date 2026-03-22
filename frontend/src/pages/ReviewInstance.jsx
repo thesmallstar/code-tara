@@ -193,6 +193,7 @@ function ChunkPanel({ chunkSummary, totalChunks, draftTrigger, onDraftTrigger })
   const [addingComment, setAddingComment] = useState(null)
   const [newCommentBody, setNewCommentBody] = useState('')
   const [selectedLabel, setSelectedLabel] = useState(null)
+  const [drafts, setDrafts] = useState([])
 
   useEffect(() => {
     if (!chunkSummary) return
@@ -202,6 +203,11 @@ function ChunkPanel({ chunkSummary, totalChunks, draftTrigger, onDraftTrigger })
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [chunkSummary?.id])
+
+  useEffect(() => {
+    if (!chunkSummary) return
+    api.getDrafts(chunkSummary.id).then(setDrafts).catch(() => setDrafts([]))
+  }, [chunkSummary?.id, draftTrigger])
 
   const handleRunAI = async () => {
     setRunningAI(true)
@@ -345,6 +351,8 @@ function ChunkPanel({ chunkSummary, totalChunks, draftTrigger, onDraftTrigger })
           diffContent={orderedDiffContent}
           lineMap={chunk.line_map}
           onAddComment={handleAddCommentFromDiff}
+          drafts={drafts}
+          onDraftUpdate={onDraftTrigger}
         />
 
         {/* Inline comment composer */}

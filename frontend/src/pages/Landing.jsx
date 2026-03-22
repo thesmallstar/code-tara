@@ -91,7 +91,7 @@ function ReviewRow({ review, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0 group"
+      className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0 group cursor-pointer"
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex-1 min-w-0">
@@ -308,6 +308,9 @@ export default function Landing() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [reviews, setReviews] = useState([])
+  const [reviewSearch, setReviewSearch] = useState('')
+  const [reviewPage, setReviewPage] = useState(1)
+  const [reviewTotalPages, setReviewTotalPages] = useState(1)
   const [reviewRequests, setReviewRequests] = useState([])
   const [lastSyncedAt, setLastSyncedAt] = useState(null)
   const [requestDays, setRequestDays] = useState(14)
@@ -334,8 +337,14 @@ export default function Landing() {
       .catch(() => setGhStatus({ state: 'error', username: null, error: 'Cannot reach backend' }))
   }
 
-  const loadReviews = () => {
-    api.listReviews().then(setReviews).catch(() => {})
+  const loadReviews = (search = reviewSearch, page = reviewPage) => {
+    api.listReviews(search, page)
+      .then((data) => {
+        setReviews(data.items)
+        setReviewTotalPages(data.total_pages)
+        setReviewPage(data.page)
+      })
+      .catch(() => {})
   }
 
   const applyRequestsResponse = ({ items, last_synced_at }) => {
@@ -438,7 +447,7 @@ export default function Landing() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="h-screen bg-white flex flex-col overflow-hidden">
       {/* Header */}
       <header className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -453,9 +462,9 @@ export default function Landing() {
         </div>
       </header>
 
-      <div className="flex-1 flex">
+      <div className="flex-1 flex overflow-hidden">
         {/* Left: new review form */}
-        <div className="w-full max-w-md px-10 py-12 border-r border-gray-100 shrink-0">
+        <div className="w-full max-w-md px-10 py-12 border-r border-gray-100 shrink-0 overflow-y-auto">
           <div className="flex items-center gap-3 mb-2">
             <img src="/logo.png" alt="tara" className="w-10 h-10" />
             <h1 className="text-2xl font-semibold text-gray-900">hey, I'm tara 👋</h1>
@@ -607,32 +616,73 @@ export default function Landing() {
           </div>
 
           {/* ── Recent reviews ── */}
-          <div className="px-8 py-8">
+          <div className="px-8 py-8 min-h-[400px]">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">Recent Reviews</h2>
               <button
-                onClick={loadReviews}
+                onClick={() => loadReviews(reviewSearch, 1)}
                 className="text-xs text-gray-400 hover:text-gray-600 underline"
               >
                 Refresh
               </button>
             </div>
 
+            <div className="mb-4">
+              <input
+                type="text"
+                value={reviewSearch}
+                onChange={(e) => {
+                  setReviewSearch(e.target.value)
+                  setReviewPage(1)
+                  loadReviews(e.target.value, 1)
+                }}
+                placeholder="Search by repo, title, or author…"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm
+                  focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent
+                  placeholder:text-gray-400"
+              />
+            </div>
+
             {reviews.length === 0 ? (
               <div className="text-center py-10 text-gray-400">
-                <p className="text-sm">tara hasn't reviewed anything yet.</p>
-                <p className="text-xs mt-1">drop a PR link on the left to get started.</p>
+                <p className="text-sm">{reviewSearch ? 'no reviews match your search.' : "tara hasn't reviewed anything yet."}</p>
+                {!reviewSearch && <p className="text-xs mt-1">drop a PR link on the left to get started.</p>}
               </div>
             ) : (
-              <div className="border border-gray-200 rounded-lg overflow-hidden">
-                {reviews.map((r) => (
-                  <ReviewRow
-                    key={r.id}
-                    review={r}
-                    onClick={() => navigate(`/review/${r.id}`)}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  {reviews.map((r) => (
+                    <ReviewRow
+                      key={r.id}
+                      review={r}
+                      onClick={() => navigate(`/review/${r.id}`)}
+                    />
+                  ))}
+                </div>
+                {reviewTotalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 mt-4">
+                    <button
+                      onClick={() => { setReviewPage(reviewPage - 1); loadReviews(reviewSearch, reviewPage - 1) }}
+                      disabled={reviewPage <= 1}
+                      className="text-xs px-3 py-1 border border-gray-200 rounded-md hover:bg-gray-50
+                        disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      ← Prev
+                    </button>
+                    <span className="text-xs text-gray-400">
+                      {reviewPage} / {reviewTotalPages}
+                    </span>
+                    <button
+                      onClick={() => { setReviewPage(reviewPage + 1); loadReviews(reviewSearch, reviewPage + 1) }}
+                      disabled={reviewPage >= reviewTotalPages}
+                      className="text-xs px-3 py-1 border border-gray-200 rounded-md hover:bg-gray-50
+                        disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      Next →
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
           </>)}
