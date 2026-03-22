@@ -352,6 +352,7 @@ function ChunkPanel({ chunkSummary, totalChunks, draftTrigger, onDraftTrigger })
           lineMap={chunk.line_map}
           onAddComment={handleAddCommentFromDiff}
           drafts={drafts}
+          onDraftUpdate={onDraftTrigger}
         />
 
         {/* Inline comment composer */}

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
-import { labelClasses } from '../lib/labels'
+import { api } from '../lib/api'
+import { COMMENT_LABELS, labelClasses } from '../lib/labels'
 
 function parsePatch(patch) {
   if (!patch) return []
@@ -28,7 +29,43 @@ function parsePatch(patch) {
   return lines
 }
 
-function InlineDraftPopover({ draft }) {
+function InlineDraftPopover({ draft, onUpdate }) {
+  const [editing, setEditing] = useState(false)
+  const [body, setBody] = useState(draft.body_md || '')
+  const [label, setLabel] = useState(draft.label || null)
+  const [saving, setSaving] = useState(false)
+
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      await api.updateDraft(draft.id, { body_md: body, label })
+      onUpdate()
+      setEditing(false)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleSend = async () => {
+    setSaving(true)
+    try {
+      await api.sendDraft(draft.id)
+      onUpdate()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    setSaving(true)
+    try {
+      await api.deleteDraft(draft.id)
+      onUpdate()
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <tr>
       <td colSpan={5} className="p-0">
@@ -36,18 +73,75 @@ function InlineDraftPopover({ draft }) {
           <div className="px-3 py-2">
             <div className="flex items-center gap-2 mb-1">
               <span className="text-xs font-medium text-blue-700">tara's draft</span>
-              {draft.label && (
+              {draft.label && !editing && (
                 <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${labelClasses(draft.label)}`}>
                   {draft.label}
                 </span>
               )}
-              <span className="text-xs mono text-gray-400 ml-auto">
-                :{draft.line}
-              </span>
+              {draft.status === 'SENT' && (
+                <span className="text-xs px-1.5 py-0.5 rounded-full font-medium bg-green-100 text-green-700">sent</span>
+              )}
+              <span className="text-xs mono text-gray-400 ml-auto">:{draft.line}</span>
             </div>
-            <div className="prose prose-sm text-xs text-gray-700">
-              <ReactMarkdown>{draft.body_md}</ReactMarkdown>
-            </div>
+
+            {editing ? (
+              <div className="space-y-2 mt-1">
+                <div className="flex items-center gap-1 flex-wrap">
+                  {COMMENT_LABELS.map(({ value }) => (
+                    <button
+                      key={value}
+                      onClick={() => setLabel(label === value ? null : value)}
+                      className={`text-xs px-2 py-0.5 rounded-full border transition-colors
+                        ${label === value
+                          ? `${labelClasses(value)} border-transparent ring-1 ring-offset-1 ring-gray-400`
+                          : 'border-gray-200 text-gray-400 hover:bg-gray-50'
+                        }`}
+                    >
+                      {value}
+                    </button>
+                  ))}
+                </div>
+                <textarea
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                  rows={4}
+                  className="w-full text-xs mono px-2 py-1.5 border border-gray-300 rounded resize-y
+                    focus:outline-none focus:ring-1 focus:ring-gray-900"
+                />
+                <div className="flex gap-2">
+                  <button onClick={handleSave} disabled={saving}
+                    className="text-xs px-3 py-1 bg-gray-900 text-white rounded hover:bg-gray-800 disabled:opacity-50">
+                    Save
+                  </button>
+                  <button onClick={() => { setBody(draft.body_md || ''); setLabel(draft.label || null); setEditing(false) }}
+                    className="text-xs px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="prose prose-sm text-xs text-gray-700">
+                  <ReactMarkdown>{draft.body_md}</ReactMarkdown>
+                </div>
+                {draft.status === 'DRAFT' && (
+                  <div className="flex gap-2 mt-2">
+                    <button onClick={handleSend} disabled={saving}
+                      className="text-xs px-2.5 py-1 bg-gray-900 text-white rounded hover:bg-gray-800 disabled:opacity-50">
+                      Send to GitHub
+                    </button>
+                    <button onClick={() => setEditing(true)}
+                      className="text-xs px-2.5 py-1 border border-gray-300 rounded hover:bg-gray-50">
+                      Edit
+                    </button>
+                    <button onClick={handleDelete} disabled={saving}
+                      className="text-xs px-2.5 py-1 border border-red-200 text-red-500 rounded hover:bg-red-50 disabled:opacity-50">
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
       </td>
@@ -55,7 +149,7 @@ function InlineDraftPopover({ draft }) {
   )
 }
 
-function DiffLineRow({ line, commentableLine, onCommentClick, draftsForLine, expandedLines, onToggleDraft }) {
+function DiffLineRow({ line, commentableLine, onCommentClick, draftsForLine, expandedLines, onToggleDraft, onDraftUpdate }) {
   const isCommentable = commentableLine && line.newLine !== null
   const hasDraft = draftsForLine && draftsForLine.length > 0
   const isExpanded = hasDraft && expandedLines?.has(line.newLine)
@@ -81,7 +175,7 @@ function DiffLineRow({ line, commentableLine, onCommentClick, draftsForLine, exp
             <button
               onClick={() => onToggleDraft(line.newLine)}
               title={`${draftsForLine.length} draft comment${draftsForLine.length > 1 ? 's' : ''} — click to ${isExpanded ? 'collapse' : 'expand'}`}
-              className={`text-xs leading-none transition-colors ${isExpanded ? 'text-blue-600' : 'text-blue-400 hover:text-blue-600'}`}
+              className={`text-sm leading-none transition-colors ${isExpanded ? 'text-blue-600' : 'text-blue-400 hover:text-blue-600'}`}
             >
               💬
             </button>
@@ -105,13 +199,13 @@ function DiffLineRow({ line, commentableLine, onCommentClick, draftsForLine, exp
         )}
       </tr>
       {isExpanded && draftsForLine.map((draft) => (
-        <InlineDraftPopover key={draft.id} draft={draft} />
+        <InlineDraftPopover key={draft.id} draft={draft} onUpdate={onDraftUpdate} />
       ))}
     </>
   )
 }
 
-function FileDiff({ path, patch, lineMap, onAddComment, drafts }) {
+function FileDiff({ path, patch, lineMap, onAddComment, drafts, onDraftUpdate }) {
   const [collapsed, setCollapsed] = useState(false)
   const [expandedLines, setExpandedLines] = useState(new Set())
   const lines = parsePatch(patch)
@@ -162,6 +256,7 @@ function FileDiff({ path, patch, lineMap, onAddComment, drafts }) {
                   draftsForLine={line.newLine !== null ? draftsByLine[line.newLine] : null}
                   expandedLines={expandedLines}
                   onToggleDraft={toggleDraft}
+                  onDraftUpdate={onDraftUpdate}
                 />
               ))}
             </tbody>
@@ -175,7 +270,7 @@ function FileDiff({ path, patch, lineMap, onAddComment, drafts }) {
   )
 }
 
-export default function DiffView({ diffContent, lineMap, onAddComment, drafts }) {
+export default function DiffView({ diffContent, lineMap, onAddComment, drafts, onDraftUpdate }) {
   const entries = Object.entries(diffContent || {})
   if (!entries.length) {
     return <p className="text-sm text-gray-400 italic">No diff content available.</p>
@@ -196,6 +291,7 @@ export default function DiffView({ diffContent, lineMap, onAddComment, drafts })
           lineMap={lineMap?.[path]}
           onAddComment={onAddComment}
           drafts={draftsByPath[path] || []}
+          onDraftUpdate={onDraftUpdate}
         />
       ))}
     </div>
