@@ -205,6 +205,102 @@ function getStoredProvider() {
   return localStorage.getItem(PROVIDER_KEY) || 'claude'
 }
 
+function InstructionCard({ instruction, onSave, onReset }) {
+  const [editing, setEditing] = useState(false)
+  const [text, setText] = useState(instruction.text)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => { setText(instruction.text) }, [instruction.text])
+
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      await onSave(instruction.key, text)
+      setEditing(false)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleReset = async () => {
+    setSaving(true)
+    try {
+      const defaultText = await onReset(instruction.key)
+      setText(defaultText)
+      setEditing(false)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="border border-gray-200 rounded-xl bg-white overflow-hidden">
+      <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900">{instruction.label}</h3>
+          <p className="text-xs text-gray-400 mt-0.5">{instruction.description}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          {instruction.is_custom && (
+            <span className="text-xs px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full">customized</span>
+          )}
+          {!editing && (
+            <button
+              onClick={() => setEditing(true)}
+              className="text-xs px-3 py-1 border border-gray-200 rounded-md hover:bg-gray-50 text-gray-600"
+            >
+              Edit
+            </button>
+          )}
+        </div>
+      </div>
+      <div className="px-4 py-3">
+        {editing ? (
+          <div className="space-y-2">
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              rows={10}
+              className="w-full text-xs mono px-3 py-2 border border-gray-300 rounded-lg resize-y
+                focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent leading-relaxed"
+            />
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleSave}
+                disabled={saving || text === instruction.text}
+                className="text-xs px-3 py-1 bg-gray-900 text-white rounded-md hover:bg-gray-800
+                  disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {saving ? 'Saving…' : 'Save'}
+              </button>
+              <button
+                onClick={() => { setText(instruction.text); setEditing(false) }}
+                className="text-xs px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              {instruction.is_custom && (
+                <button
+                  onClick={handleReset}
+                  disabled={saving}
+                  className="text-xs px-3 py-1 border border-red-200 text-red-500 rounded-md hover:bg-red-50 ml-auto
+                    disabled:opacity-40"
+                >
+                  Reset to default
+                </button>
+              )}
+            </div>
+          </div>
+        ) : (
+          <pre className="text-xs mono text-gray-600 whitespace-pre-wrap leading-relaxed max-h-36 overflow-y-auto">
+            {instruction.text}
+          </pre>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function Landing() {
   const navigate = useNavigate()
   const [ghStatus, setGhStatus] = useState({ state: 'checking', username: null })
@@ -218,6 +314,9 @@ export default function Landing() {
   const [requestsLoading, setRequestsLoading] = useState(false)
   const [startingUrl, setStartingUrl] = useState(null)
   const [provider, setProviderState] = useState(getStoredProvider)
+  const [rightTab, setRightTab] = useState('reviews')
+  const [instructions, setInstructions] = useState([])
+  const [instructionsLoading, setInstructionsLoading] = useState(false)
   const syncIntervalRef = useRef(null)
 
   const setProvider = (name) => {
@@ -272,6 +371,30 @@ export default function Landing() {
     syncIntervalRef.current = setInterval(() => syncReviewRequests(requestDays), ONE_HOUR_MS)
     return () => clearInterval(syncIntervalRef.current)
   }, [])
+
+  useEffect(() => {
+    if (rightTab !== 'instructions' || instructions.length > 0) return
+    setInstructionsLoading(true)
+    api.getPrompts()
+      .then(setInstructions)
+      .catch(() => {})
+      .finally(() => setInstructionsLoading(false))
+  }, [rightTab])
+
+  const handleSaveInstruction = async (key, text) => {
+    await api.updatePrompt(key, text)
+    setInstructions((prev) =>
+      prev.map((p) => p.key === key ? { ...p, text, is_custom: true } : p)
+    )
+  }
+
+  const handleResetInstruction = async (key) => {
+    const result = await api.resetPrompt(key)
+    setInstructions((prev) =>
+      prev.map((p) => p.key === key ? { ...p, text: result.text, is_custom: false } : p)
+    )
+    return result.text
+  }
 
   const handleDaysChange = (days) => {
     setRequestDays(days)
@@ -405,10 +528,32 @@ export default function Landing() {
           </form>
         </div>
 
-        {/* Right: review requests + recent reviews */}
-        <div className="flex-1 overflow-y-auto">
+        {/* Right: tabs */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Tab bar */}
+          <div className="px-8 pt-6 pb-0 flex gap-1 border-b border-gray-200">
+            {[
+              { key: 'reviews', label: 'Reviews' },
+              { key: 'instructions', label: 'Instructions' },
+            ].map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setRightTab(key)}
+                className={`text-sm px-4 py-2 font-medium border-b-2 transition-colors -mb-px
+                  ${rightTab === key
+                    ? 'border-gray-900 text-gray-900'
+                    : 'border-transparent text-gray-400 hover:text-gray-600'
+                  }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex-1 overflow-y-auto">
+          {rightTab === 'reviews' && (<>
           {/* ── Review requests ── */}
-          <div className="px-8 pt-10 pb-6 border-b border-gray-100">
+          <div className="px-8 pt-8 pb-6 border-b border-gray-100">
             <div className="flex items-center justify-between mb-3">
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">Requested Reviews</h2>
@@ -489,6 +634,27 @@ export default function Landing() {
                 ))}
               </div>
             )}
+          </div>
+          </>)}
+
+          {rightTab === 'instructions' && (
+            <div className="px-8 py-8 space-y-5">
+              <p className="text-xs text-gray-400">
+                Customize what tara tells the AI. JSON schemas and output formats stay locked.
+              </p>
+              {instructionsLoading && (
+                <p className="text-sm text-gray-400 animate-pulse text-center py-10">Loading instructions…</p>
+              )}
+              {instructions.map((inst) => (
+                <InstructionCard
+                  key={inst.key}
+                  instruction={inst}
+                  onSave={handleSaveInstruction}
+                  onReset={handleResetInstruction}
+                />
+              ))}
+            </div>
+          )}
           </div>
         </div>
       </div>

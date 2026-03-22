@@ -55,4 +55,9 @@ export const api = {
   // Re-review
   createReReview: (reviewId) => req('POST', `/api/reviews/${reviewId}/re-review`),
   getReReview: (id) => req('GET', `/api/re-reviews/${id}`),
+
+  // Prompts
+  getPrompts: () => req('GET', '/api/prompts'),
+  updatePrompt: (key, text) => req('PUT', `/api/prompts/${key}`, { text }),
+  resetPrompt: (key) => req('DELETE', `/api/prompts/${key}`),
 }
