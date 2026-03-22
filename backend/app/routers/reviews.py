@@ -65,15 +65,43 @@ def _build_review_response(review: ReviewInstance, db: Session) -> ReviewInstanc
     )
 
 
-@router.get("", response_model=list[ReviewInstanceResponse])
-def list_reviews(db: Session = Depends(get_db)):
+@router.get("")
+def list_reviews(
+    q: str = "",
+    page: int = 1,
+    per_page: int = 10,
+    db: Session = Depends(get_db),
+):
+    query = db.query(ReviewInstance)
+    if q.strip():
+        term = f"%{q.strip()}%"
+        matching_pr_ids = (
+            db.query(PullRequest.id)
+            .filter(
+                (PullRequest.title.ilike(term))
+                | (PullRequest.owner.ilike(term))
+                | (PullRequest.repo.ilike(term))
+                | (PullRequest.author.ilike(term))
+            )
+            .subquery()
+        )
+        query = query.filter(ReviewInstance.pull_request_id.in_(matching_pr_ids))
+
+    total = query.count()
+    offset = (max(page, 1) - 1) * per_page
     reviews = (
-        db.query(ReviewInstance)
-        .order_by(ReviewInstance.created_at.desc())
-        .limit(50)
+        query.order_by(ReviewInstance.created_at.desc())
+        .offset(offset)
+        .limit(per_page)
         .all()
     )
-    return [_build_review_response(r, db) for r in reviews]
+    return {
+        "items": [_build_review_response(r, db) for r in reviews],
+        "total": total,
+        "page": page,
+        "per_page": per_page,
+        "total_pages": (total + per_page - 1) // per_page if per_page else 1,
+    }
 
 
 @router.post("", status_code=201)

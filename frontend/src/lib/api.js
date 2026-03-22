@@ -25,7 +25,8 @@ export const api = {
   syncReviewRequests: (days = 14) => req('POST', `/api/github/review-requests/sync?days=${days}`),
 
   // Reviews
-  listReviews: () => req('GET', '/api/reviews'),
+  listReviews: (q = '', page = 1, perPage = 10) =>
+    req('GET', `/api/reviews?q=${encodeURIComponent(q)}&page=${page}&per_page=${perPage}`),
   createReview: (prUrl, modelProvider) =>
     req('POST', '/api/reviews', { pr_url: prUrl, model_provider: modelProvider }),
   getReview: (id) => req('GET', `/api/reviews/${id}`),
