@@ -22,6 +22,7 @@ const REVIEW_ACTIONS = [
 
 // ── Submit review panel ───────────────────────────────────────────────────────
 function SubmitReviewPanel({ reviewId }) {
+  const [open, setOpen] = useState(false)
   const [event, setEvent] = useState('COMMENT')
   const [body, setBody] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -35,6 +36,7 @@ function SubmitReviewPanel({ reviewId }) {
       const res = await api.submitReview(reviewId, event, body)
       setSubmitted(res)
       setBody('')
+      setOpen(false)
     } catch (e) {
       setError(e.message)
     } finally {
@@ -54,9 +56,25 @@ function SubmitReviewPanel({ reviewId }) {
     )
   }
 
+  if (!open) {
+    return (
+      <div className="px-3 py-2 border-b border-gray-200">
+        <button
+          onClick={() => setOpen(true)}
+          className="w-full text-xs py-1.5 bg-gray-900 text-white rounded hover:bg-gray-800"
+        >
+          Submit Review
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div className="px-3 py-3 border-b border-gray-200 space-y-2">
-      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Submit Review</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Submit Review</h3>
+        <button onClick={() => setOpen(false)} className="text-xs text-gray-400 hover:text-gray-600">✕</button>
+      </div>
       <div className="flex gap-1.5 flex-wrap">
         {REVIEW_ACTIONS.map(({ event: e, label, cls }) => (
           <button
