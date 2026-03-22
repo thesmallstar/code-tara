@@ -92,3 +92,44 @@
 - **Decision:** Group files by test/source pairing, then by top-level directory; max 5 files or 600 diff lines per chunk
 - **Why:** Fast, deterministic, no ML infra needed; good enough for 90% of PRs
 - **Alternatives considered:** Embedding-based semantic clustering (planned for v1)
+
+---
+
+## Shared prompt store with file-based persistence
+
+- **Date:** 2026-03-22
+- **Status:** Decided
+- **Decision:** Extract all AI prompts into `app/ai/prompts.py` with hardcoded defaults. User overrides stored in `data/prompts.json`. Both Claude and Codex providers read from the same store via `get_prompt(key)`.
+- **Why:** Eliminates prompt duplication between providers; lets users customize without touching code; no DB migration needed for a single-user tool; JSON file is simple, gitignored, and easy to reset.
+- **What's editable:** Only natural language instructions. JSON schemas and output format enforcement are appended by provider code and stay locked.
+- **Alternatives considered:** DB table with Alembic migration (heavier than needed), env vars (awkward for multiline text), YAML config (unnecessary dependency)
+
+---
+
+## Mermaid diagrams in AI output
+
+- **Date:** 2026-03-22
+- **Status:** Decided
+- **Decision:** AI prompts optionally include mermaid diagrams for complex flows. Frontend renders ` ```mermaid ` code fences as inline SVG using the mermaid JS library. Falls back to raw code block on invalid syntax.
+- **Why:** Visual diagrams help explain architecture, data flows, and component relationships — especially in large PRs. Rendering inline (not at the end) keeps diagrams contextual.
+- **Alternatives considered:** Server-side rendering (slower, needs graphviz/puppeteer), separate diagram panel (loses inline context)
+
+---
+
+## Inline draft comment indicators on diff
+
+- **Date:** 2026-03-22
+- **Status:** Decided
+- **Decision:** Show 💬 icons on diff lines that have draft comments. Click to expand a popover below the line with edit/send/delete actions. Does not shift code — popover is an extra table row.
+- **Why:** Users couldn't tell which diff lines had comments without scrolling the right panel. Inline indicators make the connection visible. Full actions inline means less panel-switching.
+- **Alternatives considered:** Highlight lines only (no expand), inline the full comment body always (too noisy, shifts code)
+
+---
+
+## Instructions as tab, not separate page
+
+- **Date:** 2026-03-22
+- **Status:** Decided
+- **Decision:** Prompt/instruction editor embedded as a "Instructions" tab on the landing page right panel, alongside "Reviews". Not a separate `/prompts` route.
+- **Why:** Keeps the landing page as the single hub. Users don't need a separate settings page for a feature they rarely change. Lazy-loaded on first tab switch.
+- **Alternatives considered:** Separate `/prompts` page (built first, then removed — felt disconnected from the main flow)

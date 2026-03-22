@@ -98,3 +98,29 @@
   - `api.js` — added `getProviders()`
 - **Tests:** 51 passing (no regressions)
 - **No DB migration needed** — `model_provider` column already stored as free-form string
+
+## v0.5 — Inline Drafts, Instructions Editor, Mermaid, Search & Pagination
+
+- **Date:** 2026-03-22
+- **What:** Inline draft comment indicators on diff view, customizable AI instructions, mermaid diagram rendering, review search + pagination, UX improvements
+- **Key files changed:**
+  - `ai/prompts.py` (new) — shared prompt store with defaults; file-based persistence (`data/prompts.json`); deduplicates prompts between Claude and Codex
+  - `ai/claude.py` — removed hardcoded prompt constants, reads from `get_prompt()`
+  - `ai/codex.py` — same deduplication, reads from shared prompt store
+  - `routers/prompts.py` (new) — `GET /api/prompts`, `PUT /api/prompts/{key}`, `DELETE /api/prompts/{key}` (reset)
+  - `routers/reviews.py` — added `q` (search), `page`, `per_page` params to list endpoint; returns paginated response
+  - `models.py` — added index on `PullRequest.title` and `PullRequest.author` for search
+  - `components/DiffView.jsx` — inline draft indicators (💬 icons on diff lines); `InlineDraftPopover` with edit/send/delete actions
+  - `components/Mermaid.jsx` (new) — renders mermaid code fences as inline SVG diagrams
+  - `components/MarkdownWithMermaid.jsx` (new) — ReactMarkdown wrapper with mermaid code block detection
+  - `pages/ReviewInstance.jsx` — passes drafts to DiffView; uses MarkdownWithMermaid for AI output
+  - `pages/Landing.jsx` — Reviews | Instructions tabs; `InstructionCard` component; search input + pagination for recent reviews; pointer cursor fix
+  - `ChatPanel.jsx`, `ThreadsPanel.jsx` — use MarkdownWithMermaid for AI replies
+  - `index.css` — global cursor rules (pointer on interactive elements)
+- **Tests:** 67 passing — 16 new tests in `test_prompts.py` (prompt store + API endpoints)
+- **Key decisions:**
+  - Prompts stored as JSON file, not in DB — avoids migration for a single-user tool
+  - JSON schemas stay hardcoded in provider code — only natural language instructions are user-editable
+  - Instructions embedded as a tab on landing page, not a separate route
+  - Mermaid renders inline wherever it appears in markdown — not pushed to end
+  - Draft indicators don't shift code — popover expands below the line

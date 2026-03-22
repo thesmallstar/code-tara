@@ -21,6 +21,10 @@ Paste a GitHub PR link → tara reads the whole diff, groups changes into logica
 - **Requested Reviews** — tara shows PRs where your review is requested. One click to start a review or re-review. PRs tara has already reviewed are badged with "tara reviewed · Xd ago".
 - **Dual AI providers** — choose between Claude Code or Codex per review. Switch providers on the fly from the UI.
 - **No API keys** — uses `claude` or `codex` CLI and `gh` CLI. Auth happens through the tools you already have.
+- **Inline draft indicators** — 💬 icons on diff lines show where tara has draft comments. Click to expand, edit, send, or delete right there on the diff.
+- **Mermaid diagrams** — tara can include mermaid diagrams in summaries and assessments to visualize complex flows. Rendered inline automatically.
+- **Customizable instructions** — edit the prompts tara uses for reviews, summaries, and chat from the Instructions tab on the landing page.
+- **Search & pagination** — search recent reviews by repo, title, or author.
 - **Fully local** — SQLite database, cloned repos stay on your machine, nothing leaves except GitHub API calls.
 
 ---
@@ -82,6 +86,8 @@ AI-suggested comments land in **tara's drafts**. You can:
 - **Delete** ones you don't agree with
 - **Send to GitHub** — posts as an inline review comment on the exact line
 
+Draft comments are also shown as 💬 icons directly on the diff lines — click to expand and manage them inline without switching panels.
+
 ### 4. Discuss threads
 
 Open the **Threads** tab to see existing PR comments with all replies. Threads show colored diff hunks with an **outdated** badge when the code has changed since the comment. Hit **ask tara** on any thread, or **resolve** to mark it done locally.
@@ -96,6 +102,10 @@ After pushing fixes, open the **Re-review** tab inside the review page. Tara wil
 ### 6. Re-run
 
 Hit **re-run tara** in the top bar to re-fetch the PR and re-run the full review (useful when you want a fresh chunk analysis).
+
+### 7. Customize instructions
+
+Switch to the **Instructions** tab on the landing page to view and edit the prompts tara uses. Each instruction (chunk planning, PR summary, chunk review, chat, re-review) can be customized and reset to default.
 
 ---
 
@@ -118,7 +128,7 @@ code-tara/
 ├── backend/
 │   └── app/
 │       ├── github/          # GitHub API client, diff parser, repo clone manager
-│       ├── ai/              # Pluggable AI provider (Claude Code + Codex with factory pattern)
+│       ├── ai/              # Pluggable AI provider (Claude Code + Codex) + shared prompt store
 │       ├── reviews/         # LLM-based chunker, review pipeline, re-review service
 │       ├── routers/         # FastAPI route handlers (reviews, chunks, threads, re-reviews, github)
 │       ├── models.py        # SQLAlchemy models
@@ -127,7 +137,7 @@ code-tara/
 ├── frontend/
 │   └── src/
 │       ├── pages/           # Landing, ReviewInstance (with Re-review tab)
-│       └── components/      # DiffView, ChunkList, ChatPanel, DraftComments, ThreadsPanel
+│       └── components/      # DiffView, ChunkList, ChatPanel, DraftComments, ThreadsPanel, Mermaid
 ├── docs/                    # Architecture, setup, contributing guides
 ├── knowledge-base/          # Decision log, implementation notes for AI agents
 ├── data/                    # SQLite DB (gitignored)
