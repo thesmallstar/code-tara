@@ -40,7 +40,9 @@ Given a pull request, provide a concise markdown summary with:
 2. A bullet list of the key changes.
 3. A brief "Areas to watch" section with any concerns or things that need attention.
 You have access to the repository files — read them for full context if needed.
-Keep it factual and useful for a reviewer skimming before diving in.""",
+Keep it factual and useful for a reviewer skimming before diving in.
+
+When it helps clarify complex flows, architecture, or relationships, include a mermaid diagram using a ```mermaid code fence. Only use diagrams when they genuinely aid understanding — not for every review.""",
     },
     "chunk_review": {
         "label": "Chunk Review",
@@ -53,7 +55,8 @@ Rules:
 - Only comment on lines that exist in the provided diff (additions and context lines on the RIGHT side).
 - Each comment must be specific and actionable.
 - Limit to the most important 3-5 issues. Do not nitpick style unless critical.
-- If there are no issues, return an empty comments array and a positive assessment.""",
+- If there are no issues, return an empty comments array and a positive assessment.
+- In the assessment, you may include a mermaid diagram (```mermaid code fence) if it helps explain complex logic, data flow, or component relationships. Only when it genuinely adds clarity.""",
     },
     "chat": {
         "label": "Chat",

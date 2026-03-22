@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
+import MarkdownWithMermaid from '../components/MarkdownWithMermaid'
 import { api } from '../lib/api'
 import { COMMENT_LABELS, labelClasses } from '../lib/labels'
 import StatusBadge from '../components/StatusBadge'
@@ -168,7 +169,7 @@ function OverviewPanel({ review }) {
             tara's take
           </h2>
           <div className="prose text-sm">
-            <ReactMarkdown>{review.summary_md}</ReactMarkdown>
+            <MarkdownWithMermaid>{review.summary_md}</MarkdownWithMermaid>
           </div>
         </div>
       )}
@@ -323,7 +324,7 @@ function ChunkPanel({ chunkSummary, totalChunks, draftTrigger, onDraftTrigger })
           <>
             <SectionLabel>what changed</SectionLabel>
             <div className="mb-5 prose text-sm">
-              <ReactMarkdown>{chunk.chunk_summary}</ReactMarkdown>
+              <MarkdownWithMermaid>{chunk.chunk_summary}</MarkdownWithMermaid>
             </div>
           </>
         )}
@@ -334,7 +335,7 @@ function ChunkPanel({ chunkSummary, totalChunks, draftTrigger, onDraftTrigger })
             <SectionLabel>tara's notes</SectionLabel>
             <div className="mb-5 p-4 bg-blue-50 border border-blue-100 rounded-xl">
               <div className="prose text-sm text-blue-900">
-                <ReactMarkdown>{chunk.ai_suggestions_md}</ReactMarkdown>
+                <MarkdownWithMermaid>{chunk.ai_suggestions_md}</MarkdownWithMermaid>
               </div>
             </div>
           </>
@@ -551,7 +552,7 @@ function ReReviewPanel({ reviewId }) {
               </h3>
               {rr.changes_summary_md ? (
                 <div className="prose prose-sm text-gray-700 max-w-none">
-                  <ReactMarkdown>{rr.changes_summary_md}</ReactMarkdown>
+                  <MarkdownWithMermaid>{rr.changes_summary_md}</MarkdownWithMermaid>
                 </div>
               ) : (
                 <p className="text-sm text-gray-400 italic">No summary generated.</p>
