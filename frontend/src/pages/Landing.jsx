@@ -175,7 +175,7 @@ function ReviewRequestRow({ item, onStart, starting }) {
               onClick={() => navigate(`/review/${item.existing_review_id}`)}
               className="text-xs px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors"
             >
-              chan reviewed · {relativeDate(item.last_reviewed_at)} ↗
+              tara reviewed · {relativeDate(item.last_reviewed_at)} ↗
             </button>
           )}
         </div>
@@ -188,7 +188,7 @@ function ReviewRequestRow({ item, onStart, starting }) {
         className="shrink-0 text-xs px-3 py-1.5 bg-gray-900 text-white rounded-md hover:bg-gray-800
           disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
       >
-        {isStarting ? 'starting…' : hasReview ? 're-review it' : 'let chan review it'}
+        {isStarting ? 'starting…' : hasReview ? 're-review it' : 'let tara review it'}
       </button>
     </div>
   )
@@ -319,7 +319,7 @@ export default function Landing() {
       {/* Header */}
       <header className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-lg font-semibold text-gray-900 mono">code-chan</span>
+          <span className="text-lg font-semibold text-gray-900 mono">code-tara</span>
           <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">v0 · your ai reviewer</span>
         </div>
         <div className="flex items-center gap-3">
@@ -334,8 +334,8 @@ export default function Landing() {
         {/* Left: new review form */}
         <div className="w-full max-w-md px-10 py-12 border-r border-gray-100 shrink-0">
           <div className="flex items-center gap-3 mb-2">
-            <img src="/logo.png" alt="chan" className="w-10 h-10" />
-            <h1 className="text-2xl font-semibold text-gray-900">hey, I'm chan 👋</h1>
+            <img src="/logo.png" alt="tara" className="w-10 h-10" />
+            <h1 className="text-2xl font-semibold text-gray-900">hey, I'm tara 👋</h1>
           </div>
           <p className="text-gray-500 mb-8 text-sm leading-relaxed">
             drop a PR link and I'll read through it, group the changes, and leave you
@@ -400,7 +400,7 @@ export default function Landing() {
               className="w-full py-2.5 bg-gray-900 text-white text-sm font-medium rounded-lg
                 hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {loading ? 'chan is waking up…' : 'let chan review it'}
+              {loading ? 'tara is waking up…' : 'let tara review it'}
             </button>
           </form>
         </div>
@@ -475,7 +475,7 @@ export default function Landing() {
 
             {reviews.length === 0 ? (
               <div className="text-center py-10 text-gray-400">
-                <p className="text-sm">chan hasn't reviewed anything yet.</p>
+                <p className="text-sm">tara hasn't reviewed anything yet.</p>
                 <p className="text-xs mt-1">drop a PR link on the left to get started.</p>
               </div>
             ) : (

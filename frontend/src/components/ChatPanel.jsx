@@ -72,7 +72,7 @@ export default function ChatPanel({ chunkId, onDraftFromChat }) {
   if (!chunkId) {
     return (
       <div className="flex items-center justify-center h-full text-sm text-gray-400 italic">
-        select a chunk to chat with chan
+        select a chunk to chat with tara
       </div>
     )
   }
@@ -80,13 +80,13 @@ export default function ChatPanel({ chunkId, onDraftFromChat }) {
   return (
     <div className="flex flex-col h-full">
       <div className="px-3 py-2 border-b border-gray-200">
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">chat with chan</h3>
+        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">chat with tara</h3>
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 py-3 bg-gray-50">
         {messages.length === 0 ? (
           <p className="text-xs text-gray-400 text-center italic mt-4">
-            ask chan to explain a change, flag an issue, or help write a comment.
+            ask tara to explain a tarage, flag an issue, or help write a comment.
           </p>
         ) : (
           messages.map((m, i) => <Message key={m.id ?? i} msg={m} />)
@@ -94,7 +94,7 @@ export default function ChatPanel({ chunkId, onDraftFromChat }) {
         {sending && (
           <div className="flex justify-start mb-3">
             <div className="bg-white border border-gray-200 rounded-lg px-3 py-2">
-              <span className="text-xs text-gray-400 animate-pulse">chan is thinking…</span>
+              <span className="text-xs text-gray-400 animate-pulse">tara is thinking…</span>
             </div>
           </div>
         )}
@@ -110,7 +110,7 @@ export default function ChatPanel({ chunkId, onDraftFromChat }) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKey}
-          placeholder="ask chan anything about this chunk… (Enter to send)"
+          placeholder="ask tara anything about this chunk… (Enter to send)"
           rows={3}
           className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg resize-none
             focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"

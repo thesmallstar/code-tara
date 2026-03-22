@@ -56,7 +56,7 @@ def reply_to_thread(thread_id: int, body: ThreadReplyCreate, db: Session = Depen
 
 @router.post("/{thread_id}/discuss", response_model=ThreadDiscussResponse)
 def discuss_thread(thread_id: int, body: ThreadDiscussCreate, db: Session = Depends(get_db)):
-    """Ask chan about a specific thread — gives chan full context: file, diff hunk, all comments."""
+    """Ask tara about a specific thread — gives tara full context: file, diff hunk, all comments."""
     thread = db.get(ReviewThread, thread_id)
     if not thread:
         raise HTTPException(status_code=404, detail="Thread not found")
@@ -76,7 +76,7 @@ def discuss_thread(thread_id: int, body: ThreadDiscussCreate, db: Session = Depe
         .all()
     )
 
-    # Build rich thread context for chan
+    # Build rich thread context for tara
     ctx_parts = ["You are helping a developer discuss an existing code review comment."]
 
     if thread.path:
@@ -116,6 +116,6 @@ def discuss_thread(thread_id: int, body: ThreadDiscussCreate, db: Session = Depe
     try:
         reply = ai.chat(chunk_context, messages, repo_path=repo_path)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"chan unavailable: {e}")
+        raise HTTPException(status_code=500, detail=f"tara unavailable: {e}")
 
     return ThreadDiscussResponse(reply=reply)

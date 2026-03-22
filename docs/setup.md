@@ -17,8 +17,8 @@
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/your-username/code-chan
-cd code-chan
+git clone https://github.com/your-username/code-tara
+cd code-tara
 ```
 
 ### 2. Authenticate the CLIs
@@ -48,8 +48,8 @@ Available overrides:
 # Use a personal access token instead of gh CLI
 GITHUB_TOKEN=ghp_...
 
-# SQLite location (default: ./data/code-chan.db)
-DATABASE_URL=sqlite:///./data/code-chan.db
+# SQLite location (default: ./data/code-tara.db)
+DATABASE_URL=sqlite:///./data/code-tara.db
 ```
 
 ### 4. Install dependencies
@@ -99,7 +99,7 @@ Run `gh auth login`, or set `GITHUB_TOKEN=ghp_...` in `.env`.
 ### "attempt to write a readonly database"
 
 ```bash
-chmod 644 data/code-chan.db
+chmod 644 data/code-tara.db
 ```
 
 If the file doesn't exist yet, the backend creates it on first start.
@@ -127,7 +127,7 @@ cd backend && uv sync && uv run uvicorn app.main:app --reload
 
 | Path | Contents |
 |------|----------|
-| `data/code-chan.db` | SQLite database (all reviews, chunks, drafts, threads) |
+| `data/code-tara.db` | SQLite database (all reviews, chunks, drafts, threads) |
 | `repos/{owner}/{repo}/` | Shallow clones for AI file access |
 
 Both are gitignored. Delete them to start fresh:

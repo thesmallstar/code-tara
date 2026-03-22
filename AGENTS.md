@@ -1,4 +1,4 @@
-# AGENTS.md — code-chan
+# AGENTS.md — code-tara
 
 ## Global Rules
 
@@ -106,6 +106,6 @@ Before submitting any code, verify:
 
 ## Project Context
 
-- **Product:** code-chan
+- **Product:** code-tara
 - **Description:** Open source toolkit for AI-assisted code reviews
 - **Knowledge base:** `knowledge-base/`

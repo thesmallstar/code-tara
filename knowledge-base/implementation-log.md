@@ -21,7 +21,7 @@
     - `components/ThreadsPanel.jsx` — existing PR threads with inline reply
 - **Depends on:** GitHub `gh` CLI or `GITHUB_TOKEN`; `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`
 - **Notes:**
-  - All data in SQLite at `./data/code-chan.db` (gitignored)
+  - All data in SQLite at `./data/code-tara.db` (gitignored)
   - Frontend polls every 3s while review is processing
   - AI-suggested inline comments are pre-populated as DRAFT records
 
@@ -56,14 +56,14 @@
   - `main.py` — registers `re_reviews` router
   - `ReviewInstance.jsx` — `ReReviewPanel` + `ThreadOpinionCard` components; "Re-review" sidebar tab; tab state updated to `'overview' | 'chunk' | 'threads' | 're-review'`
   - `ThreadsPanel.jsx` — `DiffHunk` (colored lines); `parseUtc`/`fmtDate` UTC fix; outdated pill when `position === null`; resolve button + optimistic toggle
-  - `Landing.jsx` — `parseUtc`/`fmtDate`/`relativeDate` UTC helpers; "chan reviewed · Xd ago" badge on RequestRow; "re-review it" label; `handleStartReview` navigates to `/review/{id}` for existing reviews
+  - `Landing.jsx` — `parseUtc`/`fmtDate`/`relativeDate` UTC helpers; "tara reviewed · Xd ago" badge on RequestRow; "re-review it" label; `handleStartReview` navigates to `/review/{id}` for existing reviews
 - **Alembic migration:** `94eacd111d09`
 - **Tests:** 51 passing — 13 new tests across `test_threads.py` and `test_re_reviews.py`
   - `test_threads.py` — resolve toggle: marks resolved, toggles back, 404 on missing
   - `test_re_reviews.py` — create (returns id, captures old SHA, 404), get (pending, done with opinions, 404), cache deletion on review create (removes matching, leaves others), existing_review_id in review requests (present when review exists, null when not)
 - **Key UX decisions:**
   - Re-review is a tab inside ReviewInstance, NOT a separate page/route
-  - "chan reviewed · Xd ago" badge on ReviewRequestRow is a clickable link to the old review (overview tab)
+  - "tara reviewed · Xd ago" badge on ReviewRequestRow is a clickable link to the old review (overview tab)
   - "re-review it" button navigates to `/review/{id}` with `{ state: { tab: 're-review' } }` so ReviewInstance auto-selects the Re-review tab on mount
   - Thread opinions sorted: "respond first" before "can resolve"
   - Old SHA stored at re-review creation time; compare API used to get diff; if same SHA → AI told "no new commits"
@@ -81,7 +81,7 @@
 - **Alembic migration:** `6fca07df826e`
 - **Bug fixed:** `last_synced_at` stored as naive UTC in SQLite; frontend appended `Z` so browser parses it correctly as UTC instead of local time
 - **Tests:** 12 new tests in `test_github.py` (38 total passing)
-- **UX change:** Starting a review from "Requested Reviews" no longer navigates away — it removes the item from the list and appends to "Recent Reviews" in-place
+- **UX tarage:** Starting a review from "Requested Reviews" no longer navigates away — it removes the item from the list and appends to "Recent Reviews" in-place
 
 ## v0.4 — Codex Provider + Factory Pattern + Provider Switcher
 

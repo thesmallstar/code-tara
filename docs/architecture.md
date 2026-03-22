@@ -2,7 +2,7 @@
 
 ## Overview
 
-code-chan is a local web app with a React frontend and a FastAPI backend. Everything runs on your machine — no cloud infra, no database servers. The only external calls are to the GitHub API and the `claude` CLI.
+code-tara is a local web app with a React frontend and a FastAPI backend. Everything runs on your machine — no cloud infra, no database servers. The only external calls are to the GitHub API and the `claude` CLI.
 
 ```
 Browser (localhost:3000)
@@ -13,7 +13,7 @@ FastAPI backend (localhost:8000)
         │
         ├── GitHub API (REST, via gh CLI token)
         ├── claude CLI  (subprocess, no API key)
-        └── SQLite DB   (data/code-chan.db)
+        └── SQLite DB   (data/code-tara.db)
                         + local repo clones (repos/)
 ```
 
@@ -86,7 +86,7 @@ ReviewThread          ← existing GitHub PR comments
   position              ← null if comment is on outdated/stale diff
   is_resolved           ← local resolve toggle (persisted in DB)
 
-ChatMessage           ← per-chunk chat with chan
+ChatMessage           ← per-chunk chat with tara
   review_chunk_id, role (user | assistant), content
 
 DraftComment          ← inline comments ready to post to GitHub
@@ -163,7 +163,7 @@ GitHub only allows inline comments on lines that appear in the PR diff. To handl
 ReviewInstance status: PENDING → SYNCING → SUMMARIZING → CHUNKING → AI_RUNNING → READY
 ```
 
-While status is in `[PENDING, SYNCING, SUMMARIZING, CHUNKING, AI_RUNNING]`, the frontend polls every 3 seconds. A blue banner shows "chan is on it". Once READY (or ERROR), polling stops.
+While status is in `[PENDING, SYNCING, SUMMARIZING, CHUNKING, AI_RUNNING]`, the frontend polls every 3 seconds. A blue banner shows "tara is on it". Once READY (or ERROR), polling stops.
 
 ---
 

@@ -3,18 +3,18 @@
 ---
 
 <div align="center">
-  <img src="docs/logo.png" alt="code-chan logo" width="120" />
+  <img src="docs/logo.png" alt="code-tara logo" width="120" />
 </div>
 
-# code-chan
+# code-tara
 
 **AI-assisted code review, powered by Claude Code or Codex CLI.**
 
-Paste a GitHub PR link → chan reads the whole diff, groups changes into logical review chunks, writes a walkthrough for each one, suggests inline comments you can edit and post directly to GitHub, and lets you chat with it about any part of the code.
+Paste a GitHub PR link → tara reads the whole diff, groups changes into logical review chunks, writes a walkthrough for each one, suggests inline comments you can edit and post directly to GitHub, and lets you chat with it about any part of the code.
 
 ![Landing page — paste a PR link and see recent reviews](docs/screenshot-landing.png)
 
-![Review instance — chan's take on the PR](docs/screenshot-review.png)
+![Review instance — tara's take on the PR](docs/screenshot-review.png)
 
 ![Chunk view — walkthrough, diff, chat, and draft comments](docs/screenshot-chunk.png)
 
@@ -22,12 +22,12 @@ Paste a GitHub PR link → chan reads the whole diff, groups changes into logica
 
 ## Features
 
-- **Contextual chunking** — chan decides how to group changed files, not a dumb heuristic. Each chunk gets a purpose, a walkthrough, and a suggested reading order.
+- **Contextual chunking** — tara decides how to group changed files, not a dumb heuristic. Each chunk gets a purpose, a walkthrough, and a suggested reading order.
 - **Inline comments** — AI-suggested comments are anchored to real diff lines. Edit, delete, or post them directly to GitHub with one click.
-- **Chat per chunk** — ask chan anything about a specific set of changes. It has access to the full cloned repo.
-- **Thread discussion** — see existing PR comments with replies nested. Ask chan about any thread: "is this concern valid?", "how should I address this?"
-- **Re-review** — after you've pushed fixes, hit the Re-review tab: chan summarizes what changed since the last review and gives an opinion on each open thread (can resolve / needs a reply).
-- **Requested Reviews** — chan shows PRs where your review is requested. One click to start a review or re-review. PRs chan has already reviewed are badged with "chan reviewed · Xd ago".
+- **Chat per chunk** — ask tara anything about a specific set of changes. It has access to the full cloned repo.
+- **Thread discussion** — see existing PR comments with replies nested. Ask tara about any thread: "is this concern valid?", "how should I address this?"
+- **Re-review** — after you've pushed fixes, hit the Re-review tab: tara summarizes what changed since the last review and gives an opinion on each open thread (can resolve / needs a reply).
+- **Requested Reviews** — tara shows PRs where your review is requested. One click to start a review or re-review. PRs tara has already reviewed are badged with "tara reviewed · Xd ago".
 - **Dual AI providers** — choose between Claude Code or Codex per review. Switch providers on the fly from the UI.
 - **No API keys** — uses `claude` or `codex` CLI and `gh` CLI. Auth happens through the tools you already have.
 - **Fully local** — SQLite database, cloned repos stay on your machine, nothing leaves except GitHub API calls.
@@ -49,14 +49,14 @@ Paste a GitHub PR link → chan reads the whole diff, groups changes into logica
 ### Install & run
 
 ```bash
-git clone https://github.com/thesmallstar/code-chan
-cd code-chan
+git clone https://github.com/thesmallstar/code-tara
+cd code-tara
 
 make install   # installs Python + Node deps
 make dev       # starts backend :8000 + frontend :3000
 ```
 
-Open **http://localhost:3000**, paste a GitHub PR URL, and hit **let chan review it**.
+Open **http://localhost:3000**, paste a GitHub PR URL, and hit **let tara review it**.
 
 ---
 
@@ -68,11 +68,11 @@ Open **http://localhost:3000**, paste a GitHub PR URL, and hit **let chan review
 https://github.com/owner/repo/pull/123
 ```
 
-chan will:
+tara will:
 1. Fetch the PR metadata, diffs, and existing comments from GitHub
 2. Clone the repo locally (shallow, `--depth 1`) so it can read full file context
 3. Generate a plain-English summary of what the PR does
-4. Group changed files into logical review chunks (decided by chan, not rules)
+4. Group changed files into logical review chunks (decided by tara, not rules)
 5. For each chunk: write a walkthrough, summarize what changed, and suggest inline comments
 
 ### 2. Walk through each chunk
@@ -81,30 +81,30 @@ Each chunk in the sidebar shows:
 - **Purpose** — why these files belong together
 - **How to review this** — what to focus on, what to watch for
 - **What changed** — bullet-point summary
-- **chan's notes** — specific concerns and suggestions
-- **Diff** — in chan's suggested reading order, with hover buttons to add your own comments
+- **tara's notes** — specific concerns and suggestions
+- **Diff** — in tara's suggested reading order, with hover buttons to add your own comments
 
 ### 3. Review and send comments
 
-AI-suggested comments land in **chan's drafts**. You can:
+AI-suggested comments land in **tara's drafts**. You can:
 - **Edit** the body before posting
 - **Delete** ones you don't agree with
 - **Send to GitHub** — posts as an inline review comment on the exact line
 
 ### 4. Discuss threads
 
-Open the **Threads** tab to see existing PR comments with all replies. Threads show colored diff hunks with an **outdated** badge when the code has changed since the comment. Hit **ask chan** on any thread, or **resolve** to mark it done locally.
+Open the **Threads** tab to see existing PR comments with all replies. Threads show colored diff hunks with an **outdated** badge when the code has changed since the comment. Hit **ask tara** on any thread, or **resolve** to mark it done locally.
 
 ### 5. Re-review
 
-After pushing fixes, open the **Re-review** tab inside the review page. Chan will:
+After pushing fixes, open the **Re-review** tab inside the review page. Tara will:
 1. Compare the current head commit to when it last reviewed
 2. Summarize what changed
 3. Go through each open thread and give an opinion — "can resolve" or "respond first" with a reason
 
 ### 6. Re-run
 
-Hit **re-run chan** in the top bar to re-fetch the PR and re-run the full review (useful when you want a fresh chunk analysis).
+Hit **re-run tara** in the top bar to re-fetch the PR and re-run the full review (useful when you want a fresh chunk analysis).
 
 ---
 
@@ -123,7 +123,7 @@ Hit **re-run chan** in the top bar to re-fetch the PR and re-run the full review
 ## Project structure
 
 ```
-code-chan/
+code-tara/
 ├── backend/
 │   └── app/
 │       ├── github/          # GitHub API client, diff parser, repo clone manager
@@ -166,4 +166,4 @@ MIT — see [LICENSE](LICENSE).
 
 ---
 
-> **on the name** — *code-chan* is inspired by *vivachan* (विवेचन), a Sanskrit word meaning analysis or critical examination. chan for short.
+> **on the name** — *tara* (तारा) means star in Sanskrit. Like the Dhruv Tara (Pole Star) — the constant guiding light — code-tara is your guiding star for code reviews.

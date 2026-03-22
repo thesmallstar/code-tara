@@ -60,7 +60,7 @@ function Comment({ comment, isReply }) {
   )
 }
 
-function ChanMessage({ msg }) {
+function TaraMessage({ msg }) {
   const isUser = msg.role === 'user'
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-2`}>
@@ -86,40 +86,40 @@ function ThreadCard({ group, onPostReply }) {
   const [resolved, setResolved] = useState(root.is_resolved || false)
   const [resolving, setResolving] = useState(false)
 
-  // Chan discussion state (ephemeral — lives in component memory)
-  const [chanOpen, setChanOpen] = useState(false)
-  const [chanHistory, setChanHistory] = useState([])
-  const [chanInput, setChanInput] = useState('')
-  const [chanLoading, setChanLoading] = useState(false)
-  const [chanError, setChanError] = useState(null)
+  // Tara discussion state (ephemeral — lives in component memory)
+  const [taraOpen, setTaraOpen] = useState(false)
+  const [taraHistory, setTaraHistory] = useState([])
+  const [taraInput, setTaraInput] = useState('')
+  const [taraLoading, setTaraLoading] = useState(false)
+  const [taraError, setTaraError] = useState(null)
   const bottomRef = useRef(null)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [chanHistory, chanLoading])
+  }, [taraHistory, taraLoading])
 
   const isInline = root.type === 'REVIEW_COMMENT'
 
-  const askChan = async () => {
-    if (!chanInput.trim() || chanLoading) return
-    const msg = chanInput.trim()
-    setChanInput('')
-    setChanLoading(true)
-    setChanError(null)
-    const newHistory = [...chanHistory, { role: 'user', content: msg }]
-    setChanHistory(newHistory)
+  const askTara = async () => {
+    if (!taraInput.trim() || taraLoading) return
+    const msg = taraInput.trim()
+    setTaraInput('')
+    setTaraLoading(true)
+    setTaraError(null)
+    const newHistory = [...taraHistory, { role: 'user', content: msg }]
+    setTaraHistory(newHistory)
     try {
-      const { reply } = await api.discussThread(root.id, msg, chanHistory)
-      setChanHistory([...newHistory, { role: 'assistant', content: reply }])
+      const { reply } = await api.discussThread(root.id, msg, taraHistory)
+      setTaraHistory([...newHistory, { role: 'assistant', content: reply }])
     } catch (e) {
-      setChanError(e.message)
+      setTaraError(e.message)
     } finally {
-      setChanLoading(false)
+      setTaraLoading(false)
     }
   }
 
-  const handleChanKey = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); askChan() }
+  const handleTaraKey = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); askTara() }
   }
 
   const toggleResolve = async () => {
@@ -178,11 +178,11 @@ function ThreadCard({ group, onPostReply }) {
       {/* Actions */}
       <div className="px-3 pb-3 flex items-center gap-2 flex-wrap">
         <button
-          onClick={() => { setChanOpen(!chanOpen); if (!chanOpen && chanHistory.length === 0) setChanHistory([]) }}
+          onClick={() => { setTaraOpen(!taraOpen); if (!taraOpen && taraHistory.length === 0) setTaraHistory([]) }}
           className={`text-xs px-2.5 py-1 rounded-md border transition-colors
-            ${chanOpen ? 'bg-gray-900 text-white border-gray-900' : 'border-gray-200 text-gray-500 hover:border-gray-400 hover:text-gray-700'}`}
+            ${taraOpen ? 'bg-gray-900 text-white border-gray-900' : 'border-gray-200 text-gray-500 hover:border-gray-400 hover:text-gray-700'}`}
         >
-          {chanOpen ? 'close chan' : 'ask chan'}
+          {taraOpen ? 'close tara' : 'ask tara'}
         </button>
         <button
           onClick={() => setReplyOpen(!replyOpen)}
@@ -231,46 +231,46 @@ function ThreadCard({ group, onPostReply }) {
         </div>
       )}
 
-      {/* Chan discussion */}
-      {chanOpen && (
+      {/* Tara discussion */}
+      {taraOpen && (
         <div className="border-t border-gray-100 bg-gray-50">
           <div className="px-3 pt-2 pb-1">
             <p className="text-xs text-gray-400 italic">
-              chan has full context of this thread — ask anything.
+              tara has full context of this thread — ask anything.
             </p>
           </div>
           <div className="px-3 py-2 max-h-64 overflow-y-auto">
-            {chanHistory.length === 0 && !chanLoading && (
+            {taraHistory.length === 0 && !taraLoading && (
               <p className="text-xs text-gray-400 text-center italic py-2">
                 e.g. "is this concern valid?", "how should i address this?", "what does line 703 actually do?"
               </p>
             )}
-            {chanHistory.map((m, i) => <ChanMessage key={i} msg={m} />)}
-            {chanLoading && (
+            {taraHistory.map((m, i) => <TaraMessage key={i} msg={m} />)}
+            {taraLoading && (
               <div className="flex justify-start mb-2">
                 <div className="bg-white border border-gray-200 rounded-lg px-3 py-2">
-                  <span className="text-xs text-gray-400 animate-pulse">chan is thinking…</span>
+                  <span className="text-xs text-gray-400 animate-pulse">tara is thinking…</span>
                 </div>
               </div>
             )}
             <div ref={bottomRef} />
           </div>
-          {chanError && (
-            <p className="px-3 pb-1 text-xs text-red-500">{chanError}</p>
+          {taraError && (
+            <p className="px-3 pb-1 text-xs text-red-500">{taraError}</p>
           )}
           <div className="px-3 pb-3 pt-1">
             <textarea
-              value={chanInput}
-              onChange={(e) => setChanInput(e.target.value)}
-              onKeyDown={handleChanKey}
-              placeholder="ask chan about this thread… (Enter to send)"
+              value={taraInput}
+              onChange={(e) => setTaraInput(e.target.value)}
+              onKeyDown={handleTaraKey}
+              placeholder="ask tara about this thread… (Enter to send)"
               rows={2}
               className="w-full text-xs px-2 py-1.5 border border-gray-300 rounded-lg resize-none
                 focus:outline-none focus:ring-1 focus:ring-gray-900"
             />
             <button
-              onClick={askChan}
-              disabled={chanLoading || !chanInput.trim()}
+              onClick={askTara}
+              disabled={taraLoading || !taraInput.trim()}
               className="mt-1 w-full py-1 bg-gray-900 text-white text-xs rounded-lg
                 hover:bg-gray-800 disabled:opacity-40 transition-colors"
             >

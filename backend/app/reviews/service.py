@@ -168,9 +168,9 @@ def _run_pipeline(db: Session, review_id: int) -> None:
 
     ai = get_ai_provider(review.model_provider)
     try:
-        logger.info("Asking chan to plan review chunks…")
+        logger.info("Asking tara to plan review chunks…")
         chunk_plans = ai.plan_chunks(pr_data, files_data, repo_path=repo_path)
-        logger.info("chan planned %d chunks", len(chunk_plans))
+        logger.info("tara planned %d chunks", len(chunk_plans))
     except Exception as e:
         logger.warning("LLM chunk planning failed (%s), falling back to heuristic", e)
         # Fallback: use heuristic chunker, minimal metadata
@@ -240,7 +240,7 @@ def _run_pipeline(db: Session, review_id: int) -> None:
         except Exception as e:
             logger.warning("AI review failed for chunk %s: %s", chunk.id, e)
             chunk.status = "ERROR"
-            chunk.ai_suggestions_md = f"_chan couldn't review this chunk: {e}_"
+            chunk.ai_suggestions_md = f"_tara couldn't review this chunk: {e}_"
         db.commit()
 
     _set_status(db, review, "READY")

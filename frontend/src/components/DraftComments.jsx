@@ -167,14 +167,14 @@ export default function DraftComments({ chunkId, trigger }) {
     <div>
       <div className="px-3 py-2 border-b border-gray-200">
         <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-          chan's drafts ({drafts.length})
+          tara's drafts ({drafts.length})
         </h3>
       </div>
       <div className="p-3">
         {error && <p className="text-xs text-red-500 mb-2">{error}</p>}
         {drafts.length === 0 ? (
           <p className="text-xs text-gray-400 italic">
-            chan hasn't drafted anything yet — comments will appear here after review.
+            tara hasn't drafted anything yet — comments will appear here after review.
           </p>
         ) : (
           drafts.map((d) => (

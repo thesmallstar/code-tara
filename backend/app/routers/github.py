@@ -35,7 +35,7 @@ def _cache_row_to_item(row: ReviewRequestCache) -> ReviewRequestItem:
 
 
 def _attach_existing_reviews(items: list[ReviewRequestItem], db: Session) -> list[ReviewRequestItem]:
-    """Bulk-lookup whether chan has already reviewed each PR and attach review context."""
+    """Bulk-lookup whether tara has already reviewed each PR and attach review context."""
     pr_urls = [item.pr_url for item in items]
     if not pr_urls:
         return items

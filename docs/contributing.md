@@ -114,7 +114,7 @@ Use conventional commits (loosely):
 - [ ] **More test coverage** — `diff_parser.py`, the re-review service, and the chunker are under-tested
 - [ ] **GitLab / Bitbucket support** — the GitHub client is abstracted enough that a new `GitProvider` interface would work
 - [ ] **Additional AI providers** — Codex (OpenAI), Gemini, local Ollama models
-- [ ] **GitHub App** — so chan can run automatically on new PRs via webhook
+- [ ] **GitHub App** — so tara can run automatically on new PRs via webhook
 - [ ] **Prompt tuning** — better chunk plans, better inline comment suggestions
 - [ ] **Mobile / smaller viewport** — the layout assumes a wide screen
 - [ ] **Theming** — dark mode, per-user preferences

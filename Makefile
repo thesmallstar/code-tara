@@ -30,4 +30,4 @@ makemigration:
 	cd backend && uv run alembic revision --autogenerate -m "$(name)"
 
 clean:
-	rm -rf frontend/node_modules frontend/dist backend/.venv data/code-chan.db
+	rm -rf frontend/node_modules frontend/dist backend/.venv data/code-tara.db

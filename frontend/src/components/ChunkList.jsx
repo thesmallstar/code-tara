@@ -4,7 +4,7 @@ export default function ChunkList({ chunks, selectedId, onSelect, totalChunks, d
   if (!chunks || chunks.length === 0) {
     return (
       <div className="px-4 py-6 text-xs text-gray-400 text-center italic">
-        chan hasn't planned the review yet
+        tara hasn't planned the review yet
       </div>
     )
   }

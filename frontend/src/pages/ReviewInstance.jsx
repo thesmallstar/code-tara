@@ -98,8 +98,8 @@ function TopBar({ review, onSync, navigate }) {
         onClick={() => navigate('/')}
         className="text-sm text-gray-400 hover:text-gray-600 mono flex items-center gap-2"
       >
-        <img src="/logo.png" alt="chan" className="w-6 h-6" />
-        ← code-chan
+        <img src="/logo.png" alt="tara" className="w-6 h-6" />
+        ← code-tara
       </button>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
@@ -134,7 +134,7 @@ function TopBar({ review, onSync, navigate }) {
           onClick={onSync}
           className="text-xs px-2.5 py-1 border border-gray-300 rounded-md hover:bg-gray-50 text-gray-600"
         >
-          re-run chan
+          re-run tara
         </button>
       </div>
     </header>
@@ -146,7 +146,7 @@ function OverviewPanel({ review }) {
   if (!review?.summary_md && !['READY', 'AI_RUNNING'].includes(review?.status)) {
     return (
       <div className="flex items-center justify-center h-40">
-        <p className="text-sm text-gray-400 animate-pulse">chan is writing the summary…</p>
+        <p className="text-sm text-gray-400 animate-pulse">tara is writing the summary…</p>
       </div>
     )
   }
@@ -165,7 +165,7 @@ function OverviewPanel({ review }) {
       {review?.summary_md && (
         <div>
           <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-            chan's take
+            tara's take
           </h2>
           <div className="prose text-sm">
             <ReactMarkdown>{review.summary_md}</ReactMarkdown>
@@ -242,21 +242,21 @@ function ChunkPanel({ chunkSummary, totalChunks, draftTrigger, onDraftTrigger })
   if (!chunkSummary) {
     return (
       <div className="flex items-center justify-center h-full text-sm text-gray-400">
-        pick a chunk and chan will walk you through it
+        pick a chunk and tara will walk you through it
       </div>
     )
   }
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full text-sm text-gray-400 animate-pulse">
-        chan is fetching this chunk…
+        tara is fetching this chunk…
       </div>
     )
   }
   if (!chunk) return null
 
   const num = (chunk.order_index ?? 0) + 1
-  // Render diffs in chan's suggested reading order
+  // Render diffs in tara's suggested reading order
   const orderedDiffContent = {}
   const reviewOrder = chunk.review_order?.length ? chunk.review_order : chunk.file_paths
   for (const path of reviewOrder) {
@@ -287,7 +287,7 @@ function ChunkPanel({ chunkSummary, totalChunks, draftTrigger, onDraftTrigger })
               disabled={runningAI}
               className="text-xs px-2.5 py-1 bg-gray-900 text-white rounded hover:bg-gray-800 disabled:opacity-50"
             >
-              {runningAI ? 'chan is thinking…' : 'ask chan'}
+              {runningAI ? 'tara is thinking…' : 'ask tara'}
             </button>
           )}
         </div>
@@ -322,10 +322,10 @@ function ChunkPanel({ chunkSummary, totalChunks, draftTrigger, onDraftTrigger })
           </>
         )}
 
-        {/* ── Chan's inline comment suggestions ── */}
+        {/* ── Tara's inline comment suggestions ── */}
         {chunk.ai_suggestions_md && (
           <>
-            <SectionLabel>chan's notes</SectionLabel>
+            <SectionLabel>tara's notes</SectionLabel>
             <div className="mb-5 p-4 bg-blue-50 border border-blue-100 rounded-xl">
               <div className="prose text-sm text-blue-900">
                 <ReactMarkdown>{chunk.ai_suggestions_md}</ReactMarkdown>
@@ -338,7 +338,7 @@ function ChunkPanel({ chunkSummary, totalChunks, draftTrigger, onDraftTrigger })
         <SectionLabel>
           diff
           {chunk.review_order?.length > 0 && (
-            <span className="ml-1 normal-case font-normal text-gray-400">(in chan's suggested reading order)</span>
+            <span className="ml-1 normal-case font-normal text-gray-400">(in tara's suggested reading order)</span>
           )}
         </SectionLabel>
         <DiffView
@@ -480,7 +480,7 @@ function ReReviewPanel({ reviewId }) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-4 px-8 text-center">
         <p className="text-sm text-gray-500">
-          Get a summary of what's changed since the last review and chan's opinion on open threads.
+          Get a summary of what's changed since the last review and tara's opinion on open threads.
         </p>
         {error && <p className="text-xs text-red-500">{error}</p>}
         <button
@@ -525,7 +525,7 @@ function ReReviewPanel({ reviewId }) {
         {isActive && (
           <div className="flex items-center gap-3 py-10 justify-center">
             <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
-            <p className="text-sm text-gray-500">chan is analysing changes and reviewing threads…</p>
+            <p className="text-sm text-gray-500">tara is analysing changes and reviewing threads…</p>
           </div>
         )}
 
@@ -684,7 +684,7 @@ export default function ReviewInstance() {
   if (!review) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <p className="text-sm text-gray-400 animate-pulse">chan is loading your review…</p>
+        <p className="text-sm text-gray-400 animate-pulse">tara is loading your review…</p>
       </div>
     )
   }
@@ -699,7 +699,7 @@ export default function ReviewInstance() {
       {isActive && (
         <div className="bg-blue-50 border-b border-blue-100 px-4 py-2 text-xs text-blue-700 flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-          chan is on it — this takes a minute. updates automatically.
+          tara is on it — this takes a minute. updates automatically.
         </div>
       )}
 
