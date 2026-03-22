@@ -34,6 +34,11 @@ code, pre, .mono {
 }
 
 /* Diff view */
+.diff-highlight { animation: highlight-flash 1.5s ease-out; }
+@keyframes highlight-flash {
+  0% { background: #fef08a; }
+  100% { background: inherit; }
+}
 .diff-addition { background: #e6ffec; color: #1a4731; }
 .diff-deletion  { background: #ffebe9; color: #67060c; }
 .diff-context   { background: #fff; color: #57606a; }

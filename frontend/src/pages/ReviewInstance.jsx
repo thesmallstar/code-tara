@@ -187,7 +187,7 @@ function SectionLabel({ children }) {
 }
 
 // ── Chunk detail tab ──────────────────────────────────────────────────────────
-function ChunkPanel({ chunkSummary, totalChunks, draftTrigger, onDraftTrigger }) {
+function ChunkPanel({ chunkSummary, totalChunks, draftTrigger, onDraftTrigger, highlightedLine }) {
   const [chunk, setChunk] = useState(null)
   const [loading, setLoading] = useState(false)
   const [runningAI, setRunningAI] = useState(false)
@@ -354,6 +354,7 @@ function ChunkPanel({ chunkSummary, totalChunks, draftTrigger, onDraftTrigger })
           onAddComment={handleAddCommentFromDiff}
           drafts={drafts}
           onDraftUpdate={onDraftTrigger}
+          highlightedLine={highlightedLine}
         />
 
         {/* Inline comment composer */}
@@ -600,6 +601,7 @@ export default function ReviewInstance() {
   const [rightPanelTab, setRightPanelTab] = useState('drafts')       // 'drafts' | 'chat'
   const [selectedChunk, setSelectedChunk] = useState(null)
   const [draftTrigger, setDraftTrigger] = useState(0)
+  const [highlightedLine, setHighlightedLine] = useState(null)
   const [error, setError] = useState(null)
   const [doneChunks, setDoneChunks] = useState(new Set())
 
@@ -817,6 +819,7 @@ export default function ReviewInstance() {
                 totalChunks={review.chunks?.length ?? 0}
                 draftTrigger={draftTrigger}
                 onDraftTrigger={() => setDraftTrigger((n) => n + 1)}
+                highlightedLine={highlightedLine}
               />
             )}
           </div>
@@ -848,6 +851,12 @@ export default function ReviewInstance() {
                     <DraftComments
                       chunkId={selectedChunk.id}
                       trigger={draftTrigger}
+                      onLocate={(path, line) => {
+                        setHighlightedLine({ path, line })
+                        setTimeout(() => setHighlightedLine(null), 1500)
+                        const el = document.getElementById(`diff-${path}-${line}`)
+                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                      }}
                     />
                   </div>
                 )}

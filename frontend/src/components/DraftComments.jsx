@@ -24,7 +24,7 @@ function LabelPicker({ value, onChange }) {
   )
 }
 
-function DraftRow({ draft, onSend, onDelete, onEdit }) {
+function DraftRow({ draft, onSend, onDelete, onEdit, onLocate }) {
   const [editing, setEditing] = useState(false)
   const [body, setBody] = useState(draft.body_md || '')
   const [label, setLabel] = useState(draft.label || null)
@@ -51,9 +51,12 @@ function DraftRow({ draft, onSend, onDelete, onEdit }) {
     <div className="border border-gray-200 rounded-lg p-3 mb-2 bg-white">
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex-1 min-w-0 space-y-1">
-          <span className="text-xs mono text-gray-500 truncate block">
-            {draft.path}:{draft.line} ({draft.side})
-          </span>
+          <button
+            onClick={() => onLocate && onLocate(draft.path, draft.line)}
+            className="text-xs mono text-blue-500 hover:text-blue-700 hover:underline truncate block text-left"
+          >
+            {draft.path}:{draft.line}
+          </button>
           {draft.label && !editing && (
             <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium ${labelClasses(draft.label)}`}>
               {draft.label}
@@ -123,7 +126,7 @@ function DraftRow({ draft, onSend, onDelete, onEdit }) {
   )
 }
 
-export default function DraftComments({ chunkId, trigger }) {
+export default function DraftComments({ chunkId, trigger, onLocate }) {
   const [drafts, setDrafts] = useState([])
   const [error, setError] = useState(null)
   const [sending, setSending] = useState(null)
@@ -184,6 +187,7 @@ export default function DraftComments({ chunkId, trigger }) {
               onSend={handleSend}
               onDelete={handleDelete}
               onEdit={handleEdit}
+              onLocate={onLocate}
             />
           ))
         )}
