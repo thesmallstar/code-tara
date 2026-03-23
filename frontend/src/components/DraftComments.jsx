@@ -48,14 +48,15 @@ function DraftRow({ draft, onSend, onDelete, onEdit, onLocate }) {
   }
 
   return (
-    <div className="border border-gray-200 rounded-lg p-3 mb-2 bg-white">
+    <div className="border border-gray-200 rounded-lg p-3 mb-2 bg-white overflow-hidden">
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex-1 min-w-0 space-y-1">
           <button
             onClick={() => onLocate && onLocate(draft.path, draft.line)}
-            className="text-xs mono text-blue-500 hover:text-blue-700 hover:underline truncate block text-left"
+            className="text-xs mono text-blue-500 hover:text-blue-700 hover:underline block text-left"
           >
-            {draft.path}:{draft.line}
+            <span className="break-all">{draft.path}</span>
+            <span>:{draft.line}</span>
           </button>
           {draft.label && !editing && (
             <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium ${labelClasses(draft.label)}`}>
@@ -95,7 +96,7 @@ function DraftRow({ draft, onSend, onDelete, onEdit, onLocate }) {
           </div>
         </div>
       ) : (
-        <div className="prose prose-sm text-xs text-gray-700 mb-3">
+        <div className="prose prose-sm text-xs text-gray-700 mb-3 overflow-hidden break-words">
           <ReactMarkdown>{draft.body_md}</ReactMarkdown>
         </div>
       )}
