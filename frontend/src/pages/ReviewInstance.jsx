@@ -195,7 +195,7 @@ function SectionLabel({ children }) {
 }
 
 // ── Chunk detail tab ──────────────────────────────────────────────────────────
-function ChunkPanel({ chunkSummary, totalChunks, draftTrigger, onDraftTrigger, highlightedLine }) {
+function ChunkPanel({ chunkSummary, totalChunks, draftTrigger, onDraftTrigger, highlightedLine, prInfo }) {
   const [chunk, setChunk] = useState(null)
   const [loading, setLoading] = useState(false)
   const [runningAI, setRunningAI] = useState(false)
@@ -203,12 +203,16 @@ function ChunkPanel({ chunkSummary, totalChunks, draftTrigger, onDraftTrigger, h
   const [newCommentBody, setNewCommentBody] = useState('')
   const [selectedLabel, setSelectedLabel] = useState(null)
   const [drafts, setDrafts] = useState([])
+  const [checkedFiles, setCheckedFiles] = useState([])
 
   useEffect(() => {
     if (!chunkSummary) return
     setLoading(true)
     api.getChunk(chunkSummary.id)
-      .then(setChunk)
+      .then((data) => {
+        setChunk(data)
+        setCheckedFiles(data.checked_file_paths || [])
+      })
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [chunkSummary?.id])
@@ -233,6 +237,24 @@ function ChunkPanel({ chunkSummary, totalChunks, draftTrigger, onDraftTrigger, h
   const handleAddCommentFromDiff = (path, line) => {
     setAddingComment({ path, line: line.newLine, side: 'RIGHT' })
     setNewCommentBody('')
+  }
+
+  const handleToggleCheckedFile = async (path) => {
+    if (!chunk) return
+
+    const nextCheckedFiles = checkedFiles.includes(path)
+      ? checkedFiles.filter((p) => p !== path)
+      : [...checkedFiles, path]
+
+    setCheckedFiles(nextCheckedFiles)
+    try {
+      const updated = await api.updateCheckedFiles(chunk.id, nextCheckedFiles)
+      setCheckedFiles(updated.checked_file_paths || [])
+      setChunk(updated)
+    } catch (e) {
+      console.error('Failed to save checked files:', e)
+      setCheckedFiles(checkedFiles)
+    }
   }
 
   const handleSaveDraft = async () => {
@@ -363,6 +385,9 @@ function ChunkPanel({ chunkSummary, totalChunks, draftTrigger, onDraftTrigger, h
           drafts={drafts}
           onDraftUpdate={onDraftTrigger}
           highlightedLine={highlightedLine}
+          checkedFiles={checkedFiles}
+          onToggleChecked={handleToggleCheckedFile}
+          prInfo={prInfo}
         />
 
         {/* Inline comment composer */}
@@ -710,6 +735,7 @@ export default function ReviewInstance() {
   }
 
   const isActive = ACTIVE_STATUSES.includes(review.status)
+  const canSubmitReview = review.status !== 'ERROR'
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
@@ -780,8 +806,21 @@ export default function ReviewInstance() {
           </div>
           <div className="border-t border-gray-200 p-2">
             <button
-              onClick={() => setTab('threads')}
+              onClick={() => canSubmitReview && setTab('submit')}
+              disabled={!canSubmitReview}
               className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors
+                ${tab === 'submit' && canSubmitReview
+                  ? 'bg-gray-900 text-white'
+                  : canSubmitReview
+                    ? 'hover:bg-gray-100 text-gray-700'
+                    : 'text-gray-300 cursor-not-allowed'
+                }`}
+            >
+              Submit Review
+            </button>
+            <button
+              onClick={() => setTab('threads')}
+              className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors mt-0.5
                 ${tab === 'threads'
                   ? 'bg-gray-900 text-white'
                   : 'hover:bg-gray-100 text-gray-700'
@@ -804,18 +843,6 @@ export default function ReviewInstance() {
             >
               Re-review
             </button>
-            {!isActive && review.status !== 'ERROR' && (
-              <button
-                onClick={() => setTab('submit')}
-                className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors mt-0.5
-                  ${tab === 'submit'
-                    ? 'bg-gray-900 text-white'
-                    : 'hover:bg-gray-100 text-gray-700'
-                  }`}
-              >
-                Submit Review
-              </button>
-            )}
           </div>
         </aside>
 
@@ -840,6 +867,7 @@ export default function ReviewInstance() {
                 draftTrigger={draftTrigger}
                 onDraftTrigger={() => setDraftTrigger((n) => n + 1)}
                 highlightedLine={highlightedLine}
+                prInfo={review.pull_request}
               />
             )}
           </div>

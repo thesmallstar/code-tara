@@ -84,9 +84,14 @@ class ReviewChunkDetail(BaseModel):
     ai_suggestions_md: Optional[str] = None
     ai_comments: list[dict] = []
     human_done: bool = False
+    checked_file_paths: list[str] = []
 
     class Config:
         from_attributes = True
+
+
+class CheckedFilesUpdate(BaseModel):
+    checked_file_paths: list[str] = []
 
 
 # ── Chat ─────────────────────────────────────────────────────────────────────

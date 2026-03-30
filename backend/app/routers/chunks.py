@@ -4,12 +4,15 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.github.client import GitHubClient, get_github_token
+from app.github.clone_manager import ensure_repo
 from app.github.diff_parser import nearest_commentable_line
 from app.models import ChatMessage, DraftComment, ReviewChunk, ReviewInstance, PullRequest
 from app.reviews.service import get_ai_provider
 from app.schemas import (
     ChatMessageCreate,
     ChatMessageResponse,
+    CheckedFilesUpdate,
     DraftCommentCreate,
     DraftCommentResponse,
     DraftCommentUpdate,
@@ -35,6 +38,7 @@ def _chunk_to_detail(chunk: ReviewChunk) -> ReviewChunkDetail:
         ai_suggestions_md=chunk.ai_suggestions_md,
         ai_comments=chunk.get_ai_comments(),
         human_done=chunk.human_done or False,
+        checked_file_paths=chunk.get_checked_file_paths(),
     )
 
 
@@ -45,6 +49,20 @@ def set_chunk_done(chunk_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Chunk not found")
     chunk.human_done = not chunk.human_done
     db.commit()
+    return _chunk_to_detail(chunk)
+
+
+@router.patch("/{chunk_id}/checked-files", response_model=ReviewChunkDetail)
+def set_checked_files(chunk_id: int, body: CheckedFilesUpdate, db: Session = Depends(get_db)):
+    chunk = db.get(ReviewChunk, chunk_id)
+    if not chunk:
+        raise HTTPException(status_code=404, detail="Chunk not found")
+
+    valid_paths = set(chunk.get_file_paths())
+    checked_paths = [path for path in body.checked_file_paths if path in valid_paths]
+    chunk.set_checked_file_paths(checked_paths)
+    db.commit()
+    db.refresh(chunk)
     return _chunk_to_detail(chunk)
 
 
@@ -131,14 +149,14 @@ def send_chat(chunk_id: int, body: ChatMessageCreate, db: Session = Depends(get_
     if chunk.ai_suggestions_md:
         chunk_context += f"\n\nAI Assessment:\n{chunk.ai_suggestions_md}"
 
-    # Try to find the local repo clone for file access
-    from app.github.clone_manager import ensure_repo, REPOS_DIR
+    # Ensure clone exists (sparse-clone if cleaned) and pull latest
     pr = db.get(PullRequest, review.pull_request_id)
     repo_path = None
     if pr:
-        candidate = REPOS_DIR / pr.owner / pr.repo
-        if candidate.exists():
-            repo_path = candidate
+        try:
+            repo_path = ensure_repo(pr.owner, pr.repo, pr.pr_number)
+        except Exception:
+            pass
 
     try:
         ai = get_ai_provider(review.model_provider or "claude")
@@ -245,18 +263,23 @@ def send_draft(draft_id: int, db: Session = Depends(get_db)):
     review = db.get(ReviewInstance, chunk.review_instance_id)
     pr = db.get(PullRequest, review.pull_request_id)
 
-    from app.github.client import GitHubClient, get_github_token
     token = get_github_token()
     if not token:
         raise HTTPException(status_code=400, detail="GitHub token not available")
 
     gh = GitHubClient(token)
     try:
+        latest_pr = gh.get_pull_request(pr.owner, pr.repo, pr.pr_number)
+        head_sha = latest_pr["head"]["sha"]
+        if head_sha != pr.head_sha:
+            pr.head_sha = head_sha
+            db.commit()
+
         result = gh.create_review_comment(
             owner=pr.owner,
             repo=pr.repo,
             pr_number=pr.pr_number,
-            commit_id=pr.head_sha,
+            commit_id=head_sha,
             path=draft.path,
             line=draft.line,
             body=_body_with_label(draft.body_md, draft.label),

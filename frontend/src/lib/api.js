@@ -37,6 +37,8 @@ export const api = {
   // Chunks
   getChunk: (id) => req('GET', `/api/chunks/${id}`),
   toggleChunkDone: (chunkId) => req('PATCH', `/api/chunks/${chunkId}/done`),
+  updateCheckedFiles: (chunkId, checkedFilePaths) =>
+    req('PATCH', `/api/chunks/${chunkId}/checked-files`, { checked_file_paths: checkedFilePaths }),
   runAI: (chunkId) => req('POST', `/api/chunks/${chunkId}/run-ai`),
   getChat: (chunkId) => req('GET', `/api/chunks/${chunkId}/chat`),
   sendChat: (chunkId, message) => req('POST', `/api/chunks/${chunkId}/chat`, { message }),
@@ -56,6 +58,10 @@ export const api = {
   // Re-review
   createReReview: (reviewId) => req('POST', `/api/reviews/${reviewId}/re-review`),
   getReReview: (id) => req('GET', `/api/re-reviews/${id}`),
+
+  // Disk / clones
+  getDiskUsage: () => req('GET', '/api/github/disk-usage'),
+  deleteAllClones: () => req('DELETE', '/api/github/clones'),
 
   // Prompts
   getPrompts: () => req('GET', '/api/prompts'),

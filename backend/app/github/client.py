@@ -1,5 +1,6 @@
 import os
 import subprocess
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 import httpx
@@ -45,7 +46,13 @@ class GitHubClient:
         url = f"{self.BASE_URL}{path}"
         with httpx.Client(timeout=30) as client:
             resp = client.post(url, headers=self.headers, json=body)
-            resp.raise_for_status()
+            if resp.status_code >= 400:
+                detail = resp.text
+                raise httpx.HTTPStatusError(
+                    f"{resp.status_code} for {url}: {detail}",
+                    request=resp.request,
+                    response=resp,
+                )
             return resp.json()
 
     def verify(self) -> dict:
@@ -168,7 +175,6 @@ class GitHubClient:
         """Return open PRs where the authenticated user has been requested to review."""
         query = "is:pr is:open review-requested:@me"
         if days > 0:
-            from datetime import datetime, timedelta, timezone
             since = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d")
             query += f" updated:>{since}"
         data = self._get("/search/issues", params={"q": query, "sort": "updated", "order": "desc", "per_page": 50})

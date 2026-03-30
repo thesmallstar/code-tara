@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.github.client import GitHubClient, get_github_token
+from app.github.clone_manager import ensure_repo
 from app.models import PullRequest, ReReview, ReviewInstance, ReviewThread
 from app.reviews.service import get_ai_provider
 
@@ -63,6 +64,12 @@ def _run(db: Session, re_review_id: int) -> None:
             diff_files = compare.get("files", [])
         except Exception as e:
             logger.warning("Could not fetch commit compare: %s", e)
+
+    # Ensure clone exists (sparse-clone if cleaned) and pull latest
+    try:
+        ensure_repo(pr.owner, pr.repo, pr.pr_number)
+    except Exception as e:
+        logger.warning("Could not ensure repo for re-review: %s", e)
 
     review_comments = gh.get_review_comments(pr.owner, pr.repo, pr.pr_number)
     issue_comments = gh.get_issue_comments(pr.owner, pr.repo, pr.pr_number)

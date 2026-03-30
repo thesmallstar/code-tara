@@ -6,6 +6,7 @@ from alembic.config import Config
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.ai import ProviderRegistry
 from app.routers import chunks, github, prompts, re_reviews, reviews, threads
 
 ALEMBIC_INI = os.path.join(os.path.dirname(__file__), "..", "alembic.ini")
@@ -43,5 +44,4 @@ def health_check():
 
 @app.get("/api/providers")
 def list_providers():
-    from app.ai import ProviderRegistry
     return ProviderRegistry.available()
