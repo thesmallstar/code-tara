@@ -2,7 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.github.client import GitHubClient, get_github_token
+from app.github.clone_manager import ensure_repo
 from app.models import PullRequest, ReviewInstance, ReviewThread
+from app.reviews.service import get_ai_provider
 from app.schemas import ReviewThreadResponse, ThreadDiscussCreate, ThreadDiscussResponse, ThreadReplyCreate
 
 router = APIRouter(prefix="/api/threads", tags=["threads"])
@@ -27,7 +30,6 @@ def reply_to_thread(thread_id: int, body: ThreadReplyCreate, db: Session = Depen
     review = db.get(ReviewInstance, thread.review_instance_id)
     pr = db.get(PullRequest, review.pull_request_id)
 
-    from app.github.client import GitHubClient, get_github_token
     token = get_github_token()
     if not token:
         raise HTTPException(status_code=400, detail="GitHub token not available")
@@ -98,16 +100,15 @@ def discuss_thread(thread_id: int, body: ThreadDiscussCreate, db: Session = Depe
 
     chunk_context = "\n".join(ctx_parts)
 
-    # Try to resolve local repo path for extra file context
-    from app.github.clone_manager import REPOS_DIR
+    # Ensure clone exists (sparse-clone if cleaned) and pull latest
     pr = db.get(PullRequest, review.pull_request_id)
     repo_path = None
     if pr:
-        candidate = REPOS_DIR / pr.owner / pr.repo
-        if candidate.exists():
-            repo_path = candidate
+        try:
+            repo_path = ensure_repo(pr.owner, pr.repo, pr.pr_number)
+        except Exception:
+            pass
 
-    from app.reviews.service import get_ai_provider
     ai = get_ai_provider(review.model_provider or "claude")
 
     # Build message history (include current message)

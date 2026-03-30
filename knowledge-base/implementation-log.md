@@ -1,5 +1,29 @@
 # Implementation Log
 
+## Unreleased
+
+- **Date:** 2026-03-27
+- **What:** Restored `Submit Review` visibility in the review sidebar
+- **How:**
+  - `frontend/src/pages/ReviewInstance.jsx` — moved `Submit Review` back above `Threads` / `Re-review` in the sidebar order
+  - `frontend/src/pages/ReviewInstance.jsx` — keep the tab visible even while a review is still processing, but render it disabled until submission is allowed
+- **Why:**
+  - The current UI placed `Submit Review` below the thread actions and hid it entirely while review status was active, which made it look like the button had disappeared
+- **Verification:** `npm -C frontend run build`
+
+- **Date:** 2026-03-27
+- **What:** Persisted per-file review checkboxes inside chunk diffs
+- **How:**
+  - `backend/app/models.py` — added `checked_file_paths_json` on `ReviewChunk`
+  - `backend/app/routers/chunks.py` — added `PATCH /api/chunks/{id}/checked-files` and included `checked_file_paths` in chunk detail responses
+  - `frontend/src/pages/ReviewInstance.jsx` — load checked file paths from chunk detail and persist each toggle through the chunk API
+  - `frontend/src/components/DiffView.jsx` — made file review checkboxes controlled by server-backed chunk state instead of browser-only state
+- **Why:**
+  - File checkboxes in the diff view were stored only in component state, so switching tabs, reloading the chunk, or remounting the review page cleared them
+- **Verification:**
+  - `npm -C frontend run build`
+  - `backend/.venv/bin/pytest backend/tests/test_chunks.py -v`
+
 ## v0 Initial Build
 
 - **Date:** 2026-03-01

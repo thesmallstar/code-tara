@@ -20,6 +20,19 @@ class TestChunkDoneToggle:
         resp = client.patch("/api/chunks/999999/done")
         assert resp.status_code == 404
 
+    def test_checked_files_persist_on_chunk(self, client, chunk):
+        resp = client.patch(
+            f"/api/chunks/{chunk.id}/checked-files",
+            json={"checked_file_paths": ["auth.py", "missing.py"]},
+        )
+
+        assert resp.status_code == 200
+        assert resp.json()["checked_file_paths"] == ["auth.py"]
+
+        detail = client.get(f"/api/chunks/{chunk.id}")
+        assert detail.status_code == 200
+        assert detail.json()["checked_file_paths"] == ["auth.py"]
+
 
 class TestDraftCommentLabel:
     def test_create_draft_without_label(self, client, chunk):
@@ -89,8 +102,9 @@ class TestDraftCommentLabel:
         db.flush()
 
         mock_result = {"id": 42, "html_url": "https://github.com/..."}
-        with patch("app.github.client.get_github_token", return_value="tok"), \
-             patch("app.github.client.GitHubClient") as MockGH:
+        with patch("app.routers.chunks.get_github_token", return_value="tok"), \
+             patch("app.routers.chunks.GitHubClient") as MockGH:
+            MockGH.return_value.get_pull_request.return_value = {"head": {"sha": "abc123"}}
             MockGH.return_value.create_review_comment.return_value = mock_result
             resp = client.post(f"/api/chunks/drafts/{d.id}/send")
 
@@ -115,8 +129,9 @@ class TestDraftCommentLabel:
         db.flush()
 
         mock_result = {"id": 43, "html_url": "https://github.com/..."}
-        with patch("app.github.client.get_github_token", return_value="tok"), \
-             patch("app.github.client.GitHubClient") as MockGH:
+        with patch("app.routers.chunks.get_github_token", return_value="tok"), \
+             patch("app.routers.chunks.GitHubClient") as MockGH:
+            MockGH.return_value.get_pull_request.return_value = {"head": {"sha": "abc123"}}
             MockGH.return_value.create_review_comment.return_value = mock_result
             resp = client.post(f"/api/chunks/drafts/{d.id}/send")
 

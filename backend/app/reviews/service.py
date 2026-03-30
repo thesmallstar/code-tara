@@ -22,6 +22,7 @@ from app.models import (
     ReviewThread,
 )
 from app.reviews.chunker import create_chunks  # kept as fallback
+from app.ai import ProviderRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -35,9 +36,6 @@ def parse_pr_url(url: str) -> tuple[str, str, int]:
     if not m:
         raise ValueError(f"Invalid GitHub PR URL: {url}")
     return m.group("owner"), m.group("repo"), int(m.group("number"))
-
-
-from app.ai import ProviderRegistry
 
 
 def get_ai_provider(model_provider: str):
@@ -114,10 +112,15 @@ def _run_pipeline(db: Session, review_id: int) -> None:
         pr.review_decision = None
     db.commit()
 
-    # ── 1b. Clone / update repo so AI can read files ───────────────────────
+    # ── 1b. Sparse-clone PR files so AI can read source ──────────────────
+    pr_files = [f["filename"] for f in files_data if f.get("filename")]
     repo_path = None
     try:
-        repo_path = ensure_repo(pr.owner, pr.repo, pr.head_sha)
+        repo_path = ensure_repo(
+            pr.owner, pr.repo,
+            pr_number=pr.pr_number,
+            pr_files=pr_files,
+        )
         logger.info("Repo available at %s", repo_path)
     except Exception as e:
         logger.warning("Could not clone repo (AI will work from diff only): %s", e)

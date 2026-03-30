@@ -6,7 +6,9 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import PullRequest, ReviewChunk, ReviewInstance, ReviewRequestCache, ReviewThread
 from app.reviews.service import parse_pr_url, process_review
+from app.github.client import GitHubClient, get_github_token
 from app.schemas import (
+    PullRequestInfo,
     ReviewChunkSummary,
     ReviewCreate,
     ReviewInstanceResponse,
@@ -36,7 +38,6 @@ def _build_review_response(review: ReviewInstance, db: Session) -> ReviewInstanc
         .order_by(ReviewChunk.id)
         .all()
     )
-    from app.schemas import PullRequestInfo
     pr_info = None
     if pr:
         pr_info = PullRequestInfo(
@@ -182,7 +183,6 @@ def submit_review(review_id: int, body: SubmitReviewRequest, db: Session = Depen
     if not pr.head_sha:
         raise HTTPException(status_code=400, detail="PR head SHA not available — re-sync first")
 
-    from app.github.client import GitHubClient, get_github_token
     token = get_github_token()
     if not token:
         raise HTTPException(status_code=400, detail="GitHub token not available")

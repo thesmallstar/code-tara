@@ -63,6 +63,7 @@ class ReviewChunk(Base):
 
     # Human review progress
     human_done = Column(Boolean, default=False)
+    checked_file_paths_json = Column(Text, default="[]")
 
     def get_file_paths(self) -> list:
         return json.loads(self.file_paths or "[]")
@@ -79,6 +80,12 @@ class ReviewChunk(Base):
     def get_review_order(self) -> list:
         order = json.loads(self.review_order or "[]")
         return order if order else self.get_file_paths()
+
+    def get_checked_file_paths(self) -> list:
+        return json.loads(self.checked_file_paths_json or "[]")
+
+    def set_checked_file_paths(self, paths: list[str]) -> None:
+        self.checked_file_paths_json = json.dumps(paths or [])
 
 
 class ReviewThread(Base):

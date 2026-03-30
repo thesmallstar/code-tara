@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.github.client import GitHubClient, get_github_token
+from app.github.clone_manager import cleanup_all, disk_usage
 from app.models import PullRequest, ReviewInstance, ReviewRequestCache
 from app.schemas import GitHubVerifyResponse, ReviewRequestItem, ReviewRequestsResponse
 
@@ -109,6 +110,16 @@ def sync_review_requests(days: int = Query(default=14, ge=0), db: Session = Depe
         ))
     db.commit()
     return _query_cached_items(days, db)
+
+
+@router.get("/disk-usage")
+def get_disk_usage():
+    return disk_usage()
+
+
+@router.delete("/clones")
+def delete_all_clones():
+    return cleanup_all()
 
 
 @router.post("/verify", response_model=GitHubVerifyResponse)

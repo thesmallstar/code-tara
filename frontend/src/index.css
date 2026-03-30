@@ -39,10 +39,13 @@ code, pre, .mono {
   0% { background: #fef08a; }
   100% { background: inherit; }
 }
-.diff-addition { background: #e6ffec; color: #1a4731; }
-.diff-deletion  { background: #ffebe9; color: #67060c; }
-.diff-context   { background: #fff; color: #57606a; }
+.diff-addition { background: #e6ffec; }
+.diff-deletion  { background: #ffebe9; }
+.diff-context   { background: #fff; }
 .diff-hunk      { background: #f1f8ff; color: #0969da; font-size: 0.78rem; }
+
+/* Let hljs token colors take precedence over diff row colors */
+.diff-addition .hljs, .diff-deletion .hljs, .diff-context .hljs { background: transparent; }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
