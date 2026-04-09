@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>code-tara — Brand System</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0d1017;
+    --night: #141825;
+    --deep: #1a1f30;
+    --star: #e4a432;
+    --star-bright: #f0b848;
+    --star-dim: #c48a20;
+    --warm: #f5e6c8;
+    --slate-900: #1a1d2b;
+    --slate-700: #3d4155;
+    --slate-500: #6b7084;
+    --slate-300: #a8adc0;
+    --slate-200: #c8ccd8;
+    --slate-100: #e8eaf0;
+    --slate-50: #f4f5f7;
+    --white: #fafaf7;
+    --indigo: #6366f1;
+    --green: #22c55e;
+    --amber: #f59e0b;
+    --red: #ef4444;
+    --font-display: 'DM Sans', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--font-display);
+    background: var(--ink);
+    color: var(--slate-200);
+    line-height: 1.65;
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Navigation */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(13,16,23,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(228,164,50,0.08);
+    padding: 0 40px;
+    display: flex; align-items: center; height: 56px;
+    gap: 32px;
+  }
+  nav .logo-sm { display: flex; align-items: center; gap: 10px; }
+  nav .logo-sm svg { width: 20px; height: 20px; }
+  nav .logo-sm span { font-family: var(--font-mono); font-size: 13px; font-weight: 500; color: var(--slate-300); letter-spacing: 0.02em; }
+  nav a { font-size: 12px; color: var(--slate-500); text-decoration: none; letter-spacing: 0.06em; text-transform: uppercase; transition: color 0.2s; }
+  nav a:hover { color: var(--star); }
+
+  /* Sections */
+  section { padding: 120px 40px 80px; max-width: 1100px; margin: 0 auto; }
+  section.full-bleed { max-width: 100%; padding-left: 0; padding-right: 0; }
+
+  /* Hero */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 160px 40px 120px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -200px; left: 50%; transform: translateX(-50%);
+    width: 800px; height: 800px;
+    background: radial-gradient(ellipse, rgba(228,164,50,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-star { width: 80px; height: 80px; margin-bottom: 48px; opacity: 0; animation: fadeUp 0.8s ease forwards 0.2s; }
+  .hero h1 { font-family: var(--font-mono); font-size: 48px; font-weight: 500; color: var(--white); letter-spacing: -0.02em; margin-bottom: 20px; opacity: 0; animation: fadeUp 0.8s ease forwards 0.4s; }
+  .hero h1 .gold { color: var(--star); }
+  .hero .tagline { font-size: 20px; color: var(--slate-300); font-weight: 300; max-width: 480px; line-height: 1.6; opacity: 0; animation: fadeUp 0.8s ease forwards 0.6s; }
+  .hero .sanskrit { font-size: 14px; color: var(--slate-500); margin-top: 16px; letter-spacing: 0.1em; opacity: 0; animation: fadeUp 0.8s ease forwards 0.8s; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Section headers */
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--star-dim);
+    margin-bottom: 12px;
+  }
+  h2 {
+    font-size: 32px;
+    font-weight: 500;
+    color: var(--white);
+    letter-spacing: -0.01em;
+    margin-bottom: 16px;
+  }
+  .section-desc {
+    font-size: 16px;
+    color: var(--slate-300);
+    max-width: 600px;
+    margin-bottom: 56px;
+    line-height: 1.7;
+  }
+  h3 {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--white);
+    margin-bottom: 12px;
+  }
+  p.detail { font-size: 14px; color: var(--slate-300); line-height: 1.7; }
+
+  /* Positioning section */
+  .positioning-card {
+    background: var(--night);
+    border: 1px solid rgba(228,164,50,0.12);
+    border-radius: 16px;
+    padding: 48px;
+    max-width: 680px;
+    margin-bottom: 48px;
+  }
+  .positioning-card .statement {
+    font-size: 24px;
+    color: var(--white);
+    font-weight: 400;
+    line-height: 1.5;
+    margin-bottom: 32px;
+    font-style: italic;
+  }
+  .positioning-card .statement em { color: var(--star); font-style: italic; }
+  .attr-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; }
+  .attr-pill {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 6px 16px;
+    border-radius: 100px;
+    border: 1px solid var(--slate-700);
+    color: var(--slate-200);
+    letter-spacing: 0.02em;
+  }
+  .we-are-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; }
+  .we-are-col h4 {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .we-are-col.yes h4 { color: var(--green); }
+  .we-are-col.no h4 { color: var(--red); }
+  .we-are-col li { font-size: 14px; color: var(--slate-300); margin-bottom: 6px; list-style: none; }
+  .we-are-col.yes li::before { content: '→ '; color: var(--green); }
+  .we-are-col.no li::before { content: '✕ '; color: var(--slate-700); }
+
+  /* Logo system */
+  .logo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+  .logo-card {
+    border-radius: 16px;
+    padding: 48px 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 220px;
+    position: relative;
+  }
+  .logo-card.dark { background: var(--night); border: 1px solid rgba(255,255,255,0.06); }
+  .logo-card.light { background: var(--white); border: 1px solid var(--slate-100); }
+  .logo-card.gold { background: var(--star); border: 1px solid var(--star-dim); }
+  .logo-card .label {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .logo-card.dark .label { color: var(--slate-500); }
+  .logo-card.light .label { color: var(--slate-500); }
+  .logo-card.gold .label { color: rgba(13,16,23,0.5); }
+
+  .lockup { display: flex; align-items: center; gap: 14px; }
+  .lockup svg.star { width: 36px; height: 36px; flex-shrink: 0; }
+  .lockup .wordmark { font-family: var(--font-mono); font-size: 22px; font-weight: 500; letter-spacing: -0.01em; }
+  .lockup .wordmark .prefix { font-weight: 400; opacity: 0.6; }
+
+  .logo-card .star-large { width: 56px; height: 56px; }
+  .logo-card .compact-mark { font-family: var(--font-mono); font-size: 18px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+  .logo-card .compact-mark svg { width: 22px; height: 22px; }
+
+  .lockup-vertical { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .lockup-vertical svg { width: 44px; height: 44px; }
+  .lockup-vertical .wordmark { font-family: var(--font-mono); font-size: 20px; font-weight: 500; letter-spacing: -0.01em; }
+  .lockup-vertical .wordmark .prefix { font-weight: 400; opacity: 0.6; }
+  .lockup-vertical .descriptor { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; margin-top: -6px; }
+
+  /* Star SVG path */
+  .star-path { /* M50 2 L61 39 L90 50 L61 61 L50 98 L39 61 L10 50 L39 39 Z */ }
+
+  /* Usage rules */
+  .usage-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 32px;
+  }
+  .usage-item {
+    background: var(--night);
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+  .usage-item h4 {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--star);
+    margin-bottom: 8px;
+    letter-spacing: 0.04em;
+  }
+  .usage-item p { font-size: 13px; color: var(--slate-300); line-height: 1.6; }
+
+  /* Colors */
+  .color-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+  .color-swatch {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .color-swatch .fill { height: 100px; }
+  .color-swatch .info { padding: 12px 14px; background: var(--night); }
+  .color-swatch .info .name { font-size: 13px; font-weight: 500; color: var(--white); margin-bottom: 2px; }
+  .color-swatch .info .hex { font-family: var(--font-mono); font-size: 11px; color: var(--slate-500); }
+
+  .color-row { display: flex; gap: 4px; margin-bottom: 8px; border-radius: 8px; overflow: hidden; }
+  .color-row .chip { flex: 1; height: 48px; display: flex; align-items: flex-end; padding: 6px 8px; }
+  .color-row .chip span { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.02em; }
+
+  /* Type */
+  .type-specimen {
+    background: var(--night);
+    border-radius: 16px;
+    padding: 48px;
+    margin-bottom: 24px;
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+  .type-specimen .sample {
+    font-size: 48px;
+    font-weight: 500;
+    color: var(--white);
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+    line-height: 1.1;
+  }
+  .type-specimen .sample.mono {
+    font-family: var(--font-mono);
+    font-size: 36px;
+    letter-spacing: -0.01em;
+  }
+  .type-specimen .meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--slate-500);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .type-scale { margin-top: 32px; }
+  .type-scale .row {
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .type-scale .row .size {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--slate-500);
+    min-width: 80px;
+  }
+  .type-scale .row .example { color: var(--white); }
+
+  /* Voice */
+  .voice-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 32px;
+  }
+  .voice-card {
+    background: var(--night);
+    border-radius: 12px;
+    padding: 28px;
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+  .voice-card h4 {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--white);
+    margin-bottom: 12px;
+  }
+  .voice-card .example {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--star);
+    background: rgba(228,164,50,0.06);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-top: 12px;
+    line-height: 1.6;
+  }
+  .voice-card p { font-size: 13px; color: var(--slate-300); line-height: 1.65; }
+
+  /* Touchpoint map */
+  .touchpoint-section { margin-top: 40px; }
+  .touchpoint-tier {
+    margin-bottom: 40px;
+  }
+  .tier-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .tier-badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-weight: 500;
+  }
+  .tier-badge.launch { background: var(--star); color: var(--ink); }
+  .tier-badge.growth { background: var(--indigo); color: white; }
+  .tier-badge.mature { background: var(--slate-700); color: var(--slate-200); }
+  .tier-header h4 { font-size: 14px; color: var(--white); font-weight: 500; }
+  .touchpoint-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
+  .tp-item {
+    background: var(--night);
+    border-radius: 10px;
+    padding: 16px 20px;
+    border: 1px solid rgba(255,255,255,0.04);
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .tp-item .tp-icon {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--star);
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+  .tp-item .tp-name { font-size: 13px; color: var(--white); font-weight: 400; }
+  .tp-item .tp-desc { font-size: 12px; color: var(--slate-500); margin-top: 2px; }
+
+  /* Social preview */
+  .social-preview {
+    background: var(--night);
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.06);
+    overflow: hidden;
+    max-width: 640px;
+    margin-top: 32px;
+  }
+  .social-preview .preview-inner {
+    background: linear-gradient(135deg, var(--ink) 0%, var(--deep) 100%);
+    padding: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 320px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .social-preview .preview-inner::before {
+    content: '';
+    position: absolute;
+    top: -100px; left: 50%; transform: translateX(-50%);
+    width: 500px; height: 500px;
+    background: radial-gradient(ellipse, rgba(228,164,50,0.08) 0%, transparent 60%);
+  }
+  .social-preview .preview-inner svg { width: 48px; margin-bottom: 24px; position: relative; }
+  .social-preview .preview-inner .title {
+    font-family: var(--font-mono);
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--white);
+    letter-spacing: -0.01em;
+    position: relative;
+    margin-bottom: 12px;
+  }
+  .social-preview .preview-inner .title .gold { color: var(--star); }
+  .social-preview .preview-inner .sub {
+    font-size: 14px;
+    color: var(--slate-300);
+    position: relative;
+    max-width: 380px;
+  }
+  .social-preview .preview-label {
+    padding: 14px 20px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--slate-500);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-top: 1px solid rgba(255,255,255,0.04);
+  }
+
+  /* Devanagari feature */
+  .devanagari-card {
+    background: var(--night);
+    border-radius: 16px;
+    border: 1px solid rgba(228,164,50,0.1);
+    padding: 48px;
+    display: flex;
+    align-items: center;
+    gap: 48px;
+    margin-top: 32px;
+  }
+  .devanagari-card .deva-text {
+    font-size: 72px;
+    color: var(--star);
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .devanagari-card .deva-info h4 { font-size: 16px; color: var(--white); font-weight: 500; margin-bottom: 8px; }
+  .devanagari-card .deva-info p { font-size: 14px; color: var(--slate-300); line-height: 1.65; }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(228,164,50,0.15) 50%, transparent 100%);
+    margin: 0 auto;
+    max-width: 400px;
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 80px 40px;
+    font-size: 13px;
+    color: var(--slate-500);
+  }
+  footer .star-sm { width: 16px; height: 16px; margin-bottom: 16px; opacity: 0.3; }
+
+  @media (max-width: 768px) {
+    .logo-grid { grid-template-columns: 1fr; }
+    .we-are-grid { grid-template-columns: 1fr; }
+    .voice-grid { grid-template-columns: 1fr; }
+    .usage-grid { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 32px; }
+    .devanagari-card { flex-direction: column; gap: 24px; text-align: center; }
+    nav { padding: 0 20px; gap: 16px; }
+    section { padding: 80px 20px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo-sm">
+    <svg viewBox="0 0 100 100"><path d="M50 2 L61 39 L90 50 L61 61 L50 98 L39 61 L10 50 L39 39 Z" fill="#e4a432"/></svg>
+    <span>code-tara</span>
+  </div>
+  <a href="#positioning">Positioning</a>
+  <a href="#logo">Logo</a>
+  <a href="#colors">Colors</a>
+  <a href="#type">Type</a>
+  <a href="#voice">Voice</a>
+  <a href="#touchpoints">Touchpoints</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <svg class="hero-star" viewBox="0 0 100 100">
+    <path d="M50 2 L61 39 L90 50 L61 61 L50 98 L39 61 L10 50 L39 39 Z" fill="#e4a432"/>
+  </svg>
+  <h1>code-<span class="gold">tara</span></h1>
+  <p class="tagline">Brand system for the guiding star of code reviews</p>
+  <p class="sanskrit">तारा — star, guiding light</p>
+</div>
+
+<!-- POSITIONING -->
+<section id="positioning">
+  <div class="section-label">01 — Positioning</div>
+  <h2>Brand stance</h2>
+  <p class="section-desc">Every visual decision, every word, every touchpoint runs through this filter. If it doesn't feel like tara, it doesn't ship.</p>
+
+  <div class="positioning-card">
+    <p class="statement">"Your <em>guiding star</em> for code reviews — AI that reads the whole diff so you can focus on what matters."</p>
+    <div class="attr-row">
+      <span class="attr-pill">Guiding</span>
+      <span class="attr-pill">Sharp</span>
+      <span class="attr-pill">Calm</span>
+      <span class="attr-pill">Local-first</span>
+      <span class="attr-pill">Trustworthy</span>
+    </div>
+    <div class="we-are-grid">
+      <div class="we-are-col yes">
+        <h4>We are</h4>
+        <ul>
+          <li>A calm, reliable review partner</li>
+          <li>AI that augments your judgment</li>
+          <li>Local-first, nothing leaves your machine</li>
+          <li>Open source, no vendor lock-in</li>
+          <li>Opinionated but editable</li>
+        </ul>
+      </div>
+      <div class="we-are-col no">
+        <h4>We are not</h4>
+        <ul>
+          <li>A replacement for human reviewers</li>
+          <li>A cloud service that reads your code</li>
+          <li>A linter or static analysis tool</li>
+          <li>Flashy, noisy, or attention-seeking</li>
+          <li>Enterprise-first or sales-driven</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="devanagari-card">
+    <div class="deva-text">तारा</div>
+    <div class="deva-info">
+      <h4>On the name</h4>
+      <p>Tara (तारा) means star in Sanskrit. Like the Dhruv Tara — the Pole Star, the constant guiding light — code-tara is your guiding star for code reviews. The name carries warmth and personality that's rare in dev tools. It's not an acronym or a clever portmanteau. It's a name. That matters.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- LOGO SYSTEM -->
+<section id="logo">
+  <div class="section-label">02 — Logo system</div>
+  <h2>The North Star mark</h2>
+  <p class="section-desc">A geometric 4-point star, slightly taller than wide — pointing upward, guiding. Precise enough for a favicon, striking enough for a hero. Five versions, each with a specific job.</p>
+
+  <div class="logo-grid">
+    <!-- Primary lockup on dark -->
+    <div class="logo-card dark">
+      <div class="lockup">
+        <svg class="star" viewBox="0 0 100 100"><path d="M50 2 L61 39 L90 50 L61 61 L50 98 L39 61 L10 50 L39 39 Z" fill="#e4a432"/></svg>
+        <div class="wordmark" style="color:#fafaf7"><span class="prefix">code-</span>tara</div>
+      </div>
+      <span class="label">Primary — dark bg</span>
+    </div>
+    <!-- Primary lockup on light -->
+    <div class="logo-card light">
+      <div class="lockup">
+        <svg class="star" viewBox="0 0 100 100"><path d="M50 2 L61 39 L90 50 L61 61 L50 98 L39 61 L10 50 L39 39 Z" fill="#0d1017"/></svg>
+        <div class="wordmark" style="color:#0d1017"><span class="prefix">code-</span>tara</div>
+      </div>
+      <span class="label">Primary — light bg</span>
+    </div>
+    <!-- Primary lockup on gold -->
+    <div class="logo-card gold">
+      <div class="lockup">
+        <svg class="star" viewBox="0 0 100 100"><path d="M50 2 L61 39 L90 50 L61 61 L50 98 L39 61 L10 50 L39 39 Z" fill="#0d1017"/></svg>
+        <div class="wordmark" style="color:#0d1017"><span class="prefix">code-</span>tara</div>
+      </div>
+      <span class="label">Primary — brand bg</span>
+    </div>
+    <!-- Symbol only -->
+    <div class="logo-card dark">
+      <svg class="star-large" viewBox="0 0 100 100"><path d="M50 2 L61 39 L90 50 L61 61 L50 98 L39 61 L10 50 L39 39 Z" fill="#e4a432"/></svg>
+      <span class="label">Symbol only</span>
+    </div>
+    <!-- Vertical lockup -->
+    <div class="logo-card dark">
+      <div class="lockup-vertical">
+        <svg viewBox="0 0 100 100"><path d="M50 2 L61 39 L90 50 L61 61 L50 98 L39 61 L10 50 L39 39 Z" fill="#e4a432"/></svg>
+        <div class="wordmark" style="color:#fafaf7"><span class="prefix">code-</span>tara</div>
+        <div class="descriptor" style="color: #6b7084">AI code review</div>
+      </div>
+      <span class="label">Vertical + descriptor</span>
+    </div>
+    <!-- Compact -->
+    <div class="logo-card dark">
+      <div class="compact-mark" style="color: #fafaf7">
+        <svg viewBox="0 0 100 100"><path d="M50 2 L61 39 L90 50 L61 61 L50 98 L39 61 L10 50 L39 39 Z" fill="#e4a432"/></svg>
+        ct
+      </div>
+      <span class="label">Compact — favicons, small</span>
+    </div>
+  </div>
+
+  <h3>Usage rules</h3>
+  <div class="usage-grid">
+    <div class="usage-item">
+      <h4>Minimum size</h4>
+      <p>The star symbol should never appear smaller than 16×16px. At smaller sizes, use the compact "ct" mark or favicon variant.</p>
+    </div>
+    <div class="usage-item">
+      <h4>Clear space</h4>
+      <p>Maintain padding equal to the star's width on all sides. The mark needs room to breathe — it's a guiding star, not a crowded badge.</p>
+    </div>
+    <div class="usage-item">
+      <h4>Don't do this</h4>
+      <p>Never rotate the star. Never add glow or shadow effects. Never use the gold star on yellow or orange backgrounds. Never stretch or distort.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- COLORS -->
+<section id="colors">
+  <div class="section-label">03 — Color system</div>
+  <h2>Night sky + star gold</h2>
+  <p class="section-desc">The brand palette lives in the metaphor: a dark sky where the star shines. Deep inks for backgrounds, warm gold for the guiding accent. No typical dev-tool purple gradients.</p>
+
+  <h3>Primary palette</h3>
+  <div class="color-grid">
+    <div class="color-swatch">
+      <div class="fill" style="background: #0d1017"></div>
+      <div class="info"><div class="name">Ink</div><div class="hex">#0d1017</div></div>
+    </div>
+    <div class="color-swatch">
+      <div class="fill" style="background: #141825"></div>
+      <div class="info"><div class="name">Night</div><div class="hex">#141825</div></div>
+    </div>
+    <div class="color-swatch">
+      <div class="fill" style="background: #e4a432"></div>
+      <div class="info"><div class="name">Star</div><div class="hex">#e4a432</div></div>
+    </div>
+    <div class="color-swatch">
+      <div class="fill" style="background: #f0b848"></div>
+      <div class="info"><div class="name">Star bright</div><div class="hex">#f0b848</div></div>
+    </div>
+    <div class="color-swatch">
+      <div class="fill" style="background: #f5e6c8"></div>
+      <div class="info"><div class="name">Warm</div><div class="hex">#f5e6c8</div></div>
+    </div>
+    <div class="color-swatch">
+      <div class="fill" style="background: #fafaf7"></div>
+      <div class="info"><div class="name">White</div><div class="hex">#fafaf7</div></div>
+    </div>
+  </div>
+
+  <h3>Neutral scale</h3>
+  <div class="color-row">
+    <div class="chip" style="background: #1a1d2b"><span style="color:#6b7084">900</span></div>
+    <div class="chip" style="background: #3d4155"><span style="color:#a8adc0">700</span></div>
+    <div class="chip" style="background: #6b7084"><span style="color:#e8eaf0">500</span></div>
+    <div class="chip" style="background: #a8adc0"><span style="color:#1a1d2b">300</span></div>
+    <div class="chip" style="background: #c8ccd8"><span style="color:#1a1d2b">200</span></div>
+    <div class="chip" style="background: #e8eaf0"><span style="color:#3d4155">100</span></div>
+    <div class="chip" style="background: #f4f5f7"><span style="color:#3d4155">50</span></div>
+  </div>
+
+  <h3 style="margin-top: 32px">Semantic colors</h3>
+  <div class="color-grid">
+    <div class="color-swatch">
+      <div class="fill" style="background: #22c55e"></div>
+      <div class="info"><div class="name">Approved</div><div class="hex">#22c55e</div></div>
+    </div>
+    <div class="color-swatch">
+      <div class="fill" style="background: #f59e0b"></div>
+      <div class="info"><div class="name">Needs work</div><div class="hex">#f59e0b</div></div>
+    </div>
+    <div class="color-swatch">
+      <div class="fill" style="background: #ef4444"></div>
+      <div class="info"><div class="name">Blocked</div><div class="hex">#ef4444</div></div>
+    </div>
+    <div class="color-swatch">
+      <div class="fill" style="background: #6366f1"></div>
+      <div class="info"><div class="name">Interactive</div><div class="hex">#6366f1</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TYPOGRAPHY -->
+<section id="type">
+  <div class="section-label">04 — Typography</div>
+  <h2>Two fonts, clear roles</h2>
+  <p class="section-desc">A geometric sans for human-facing content. A monospace for developer-facing content. The mono carries the brand's identity; the sans carries its warmth.</p>
+
+  <div class="type-specimen">
+    <div class="sample mono">code-tara</div>
+    <div class="meta">JetBrains Mono 500 — Brand wordmark, CLI output, code, technical labels</div>
+  </div>
+
+  <div class="type-specimen">
+    <div class="sample">Your guiding star for code reviews</div>
+    <div class="meta">DM Sans 500 — Headlines, body text, marketing, documentation prose</div>
+  </div>
+
+  <div class="type-scale">
+    <div class="row">
+      <span class="size" style="font-family: var(--font-mono)">48px / 500</span>
+      <span class="example" style="font-size:48px; font-weight:500; letter-spacing:-0.02em">Hero display</span>
+    </div>
+    <div class="row">
+      <span class="size" style="font-family: var(--font-mono)">32px / 500</span>
+      <span class="example" style="font-size:32px; font-weight:500; letter-spacing:-0.01em">Section heading</span>
+    </div>
+    <div class="row">
+      <span class="size" style="font-family: var(--font-mono)">20px / 400</span>
+      <span class="example" style="font-size:20px; font-weight:400">Subheading or large body</span>
+    </div>
+    <div class="row">
+      <span class="size" style="font-family: var(--font-mono)">16px / 300</span>
+      <span class="example" style="font-size:16px; font-weight:300">Body text. The default for paragraphs and descriptions.</span>
+    </div>
+    <div class="row">
+      <span class="size" style="font-family: var(--font-mono)">13px / 400</span>
+      <span class="example" style="font-size:13px; font-weight:400; font-family: var(--font-mono); color: var(--star)">// Mono for code, labels, CLI output</span>
+    </div>
+    <div class="row">
+      <span class="size" style="font-family: var(--font-mono)">11px / 400</span>
+      <span class="example" style="font-size:11px; font-weight:400; font-family: var(--font-mono); letter-spacing:0.1em; text-transform:uppercase; color: var(--slate-500)">SECTION LABELS AND BADGES</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- VOICE -->
+<section id="voice">
+  <div class="section-label">05 — Voice & tone</div>
+  <h2>How tara speaks</h2>
+  <p class="section-desc">Tara has a personality — calm, sharp, occasionally witty, never loud. The voice should feel like a senior engineer who writes thoughtful PR reviews, not a chatbot.</p>
+
+  <div class="voice-grid">
+    <div class="voice-card">
+      <h4>Direct, not blunt</h4>
+      <p>Say what needs to be said. Don't pad with hedges. But be constructive, not dismissive.</p>
+      <div class="example">✦ "This function does three things. Consider splitting it."<br>✕ "Maybe you could potentially think about splitting this?"</div>
+    </div>
+    <div class="voice-card">
+      <h4>Calm confidence</h4>
+      <p>No exclamation marks. No "exciting update!" energy. The tool works. That's enough.</p>
+      <div class="example">✦ "tara reviewed your PR. 3 chunks, 12 comments."<br>✕ "🎉 tara has finished reviewing! Check out what we found!"</div>
+    </div>
+    <div class="voice-card">
+      <h4>Technical precision</h4>
+      <p>Use the right terms. Don't dumb down for marketing. The audience writes code.</p>
+      <div class="example">✦ "Grouped into 4 chunks by logical dependency"<br>✕ "Smart AI organized your files into easy sections"</div>
+    </div>
+    <div class="voice-card">
+      <h4>Lowercase default</h4>
+      <p>The brand name is always "code-tara" or "tara" — never capitalized. Lowercase signals the tool's understated personality.</p>
+      <div class="example">✦ "let tara review it"<br>✕ "Let Tara Review It"</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TOUCHPOINTS -->
+<section id="touchpoints">
+  <div class="section-label">06 — Dev tool touchpoints</div>
+  <h2>Where the brand lives</h2>
+  <p class="section-desc">code-tara is a dev tool. Its brand surfaces are terminals, GitHub, docs, and developer communities — not billboards and shopping bags. Here's the full map, prioritized.</p>
+
+  <div class="touchpoint-section">
+    <div class="touchpoint-tier">
+      <div class="tier-header">
+        <span class="tier-badge launch">Launch</span>
+        <h4>Can't ship without these</h4>
+      </div>
+      <div class="touchpoint-list">
+        <div class="tp-item">
+          <div class="tp-icon">01</div>
+          <div><div class="tp-name">GitHub README hero</div><div class="tp-desc">Logo, one-liner, screenshot. The first impression for 90% of users.</div></div>
+        </div>
+        <div class="tp-item">
+          <div class="tp-icon">02</div>
+          <div><div class="tp-name">GitHub social preview</div><div class="tp-desc">1280×640 card. Shows when the repo link is shared anywhere.</div></div>
+        </div>
+        <div class="tp-item">
+          <div class="tp-icon">03</div>
+          <div><div class="tp-name">Terminal first-run message</div><div class="tp-desc">What developers see after make dev. Keep it to 2–3 lines. No ASCII art.</div></div>
+        </div>
+        <div class="tp-item">
+          <div class="tp-icon">04</div>
+          <div><div class="tp-name">Web UI — favicon + header</div><div class="tp-desc">Star mark as favicon. Lockup in the app header at localhost:3000.</div></div>
+        </div>
+        <div class="tp-item">
+          <div class="tp-icon">05</div>
+          <div><div class="tp-name">Review summary styling</div><div class="tp-desc">How tara's review output looks in the UI. Typography, spacing, mermaid diagrams.</div></div>
+        </div>
+        <div class="tp-item">
+          <div class="tp-icon">06</div>
+          <div><div class="tp-name">Inline comment badges</div><div class="tp-desc">The 💬 draft indicators on diff lines. Should use the star gold, not generic blue.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="touchpoint-tier">
+      <div class="tier-header">
+        <span class="tier-badge growth">Growth</span>
+        <h4>First 3 months</h4>
+      </div>
+      <div class="touchpoint-list">
+        <div class="tp-item">
+          <div class="tp-icon">07</div>
+          <div><div class="tp-name">Landing page / docs site</div><div class="tp-desc">If code-tara gets a site beyond the README. Hero, features, quick start guide.</div></div>
+        </div>
+        <div class="tp-item">
+          <div class="tp-icon">08</div>
+          <div><div class="tp-name">Twitter/X social card</div><div class="tp-desc">The share image when someone tweets about tara. Star + tagline on dark bg.</div></div>
+        </div>
+        <div class="tp-item">
+          <div class="tp-icon">09</div>
+          <div><div class="tp-name">Product Hunt listing</div><div class="tp-desc">Logo icon, gallery screenshots, tagline. First discovery channel beyond GitHub.</div></div>
+        </div>
+        <div class="tp-item">
+          <div class="tp-icon">10</div>
+          <div><div class="tp-name">Show HN post format</div><div class="tp-desc">The post title, description, and how screenshots are presented.</div></div>
+        </div>
+        <div class="tp-item">
+          <div class="tp-icon">11</div>
+          <div><div class="tp-name">Error states in UI</div><div class="tp-desc">When tara fails, how does it communicate? Branded error pages with voice.</div></div>
+        </div>
+        <div class="tp-item">
+          <div class="tp-icon">12</div>
+          <div><div class="tp-name">GitHub PR comment format</div><div class="tp-desc">When tara posts comments to GitHub, the formatting and tone of those comments.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="touchpoint-tier">
+      <div class="tier-header">
+        <span class="tier-badge mature">Maturity</span>
+        <h4>As the brand evolves</h4>
+      </div>
+      <div class="touchpoint-list">
+        <div class="tp-item">
+          <div class="tp-icon">13</div>
+          <div><div class="tp-name">Stickers + swag</div><div class="tp-desc">Die-cut star stickers for laptops. Dev conferences. Community identity.</div></div>
+        </div>
+        <div class="tp-item">
+          <div class="tp-icon">14</div>
+          <div><div class="tp-name">VS Code extension</div><div class="tp-desc">If tara becomes an extension — icon, sidebar branding, status bar indicator.</div></div>
+        </div>
+        <div class="tp-item">
+          <div class="tp-icon">15</div>
+          <div><div class="tp-name">GitHub Actions badge</div><div class="tp-desc">"reviewed by tara" badge for READMEs. Star icon + status color.</div></div>
+        </div>
+        <div class="tp-item">
+          <div class="tp-icon">16</div>
+          <div><div class="tp-name">Conference talk template</div><div class="tp-desc">Slide deck template for talks about code-tara or AI code review.</div></div>
+        </div>
+        <div class="tp-item">
+          <div class="tp-icon">17</div>
+          <div><div class="tp-name">Discord / community branding</div><div class="tp-desc">Server icon, role colors, bot avatar if tara gets a community space.</div></div>
+        </div>
+        <div class="tp-item">
+          <div class="tp-icon">18</div>
+          <div><div class="tp-name">Contributor guide design</div><div class="tp-desc">Branded CONTRIBUTING.md with visual hierarchy and the brand voice.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SOCIAL PREVIEW -->
+<section>
+  <div class="section-label">07 — GitHub social preview</div>
+  <h2>Share card concept</h2>
+  <p class="section-desc">The 1280×640 image that appears whenever someone shares the repo link on Twitter, Slack, Discord, or anywhere that unfurls URLs.</p>
+
+  <div class="social-preview">
+    <div class="preview-inner">
+      <svg viewBox="0 0 100 100"><path d="M50 2 L61 39 L90 50 L61 61 L50 98 L39 61 L10 50 L39 39 Z" fill="#e4a432"/></svg>
+      <div class="title">code-<span class="gold">tara</span></div>
+      <div class="sub">AI-assisted code review, powered by Claude Code or Codex CLI</div>
+    </div>
+    <div class="preview-label">1280 × 640 — GitHub social preview</div>
+  </div>
+</section>
+
+<footer>
+  <svg class="star-sm" viewBox="0 0 100 100"><path d="M50 2 L61 39 L90 50 L61 61 L50 98 L39 61 L10 50 L39 39 Z" fill="#e4a432"/></svg>
+  <p>code-tara brand system — तारा</p>
+</footer>
+
+</body>
+</html>
