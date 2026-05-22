@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="docs/logo.png" alt="code-tara logo" width="120" />
+  <img src="branding/lockup-light-bg.svg" alt="code-tara logo" width="200" />
 </div>
 
 # code-tara

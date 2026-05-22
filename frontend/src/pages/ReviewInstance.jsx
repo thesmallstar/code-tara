@@ -107,7 +107,7 @@ function TopBar({ review, onSync, navigate }) {
         onClick={() => navigate('/')}
         className="text-sm text-gray-400 hover:text-gray-600 mono flex items-center gap-2"
       >
-        <img src="/logo.png" alt="tara" className="w-6 h-6" />
+        <img src="/symbol-gold.svg" alt="tara" className="w-6 h-6" />
         ← code-tara
       </button>
       <div className="flex-1 min-w-0">

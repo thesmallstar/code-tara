@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="42%" r="50%">
+      <stop offset="0%" stop-color="#e4a432" stop-opacity="0.08"/>
+      <stop offset="60%" stop-color="#e4a432" stop-opacity="0.02"/>
+      <stop offset="100%" stop-color="#0d1017" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1280" height="640" fill="#0d1017"/>
+  <rect width="1280" height="640" fill="url(#glow)"/>
+  <!-- Star mark -->
+  <g transform="translate(604, 198) scale(0.72)">
+    <path d="M50 2 L61 39 L90 50 L61 61 L50 98 L39 61 L10 50 L39 39 Z" fill="#e4a432"/>
+  </g>
+  <!-- Wordmark -->
+  <text x="640" y="360" text-anchor="middle" font-family="'SF Mono','JetBrains Mono','Fira Code',monospace" font-size="52" font-weight="500" fill="#fafaf7" letter-spacing="-0.5">code-<tspan fill="#e4a432">tara</tspan></text>
+  <!-- Tagline -->
+  <text x="640" y="410" text-anchor="middle" font-family="'DM Sans','SF Pro Display',system-ui,sans-serif" font-size="20" font-weight="300" fill="#a8adc0">AI-assisted code review, powered by Claude Code or Codex CLI</text>
+  <!-- Bottom bar -->
+  <line x1="520" y1="470" x2="760" y2="470" stroke="#e4a432" stroke-width="0.5" stroke-opacity="0.2"/>
+  <text x="640" y="500" text-anchor="middle" font-family="'SF Mono','JetBrains Mono','Fira Code',monospace" font-size="13" fill="#6b7084" letter-spacing="1.5">OPEN SOURCE</text>
+  <!-- Small decorative stars -->
+  <g opacity="0.15">
+    <circle cx="180" cy="120" r="1.5" fill="#e4a432"/>
+    <circle cx="320" cy="80" r="1" fill="#e4a432"/>
+    <circle cx="1050" cy="140" r="1.5" fill="#e4a432"/>
+    <circle cx="950" cy="90" r="1" fill="#e4a432"/>
+    <circle cx="200" cy="520" r="1" fill="#e4a432"/>
+    <circle cx="1100" cy="480" r="1" fill="#e4a432"/>
+    <circle cx="400" cy="550" r="0.8" fill="#e4a432"/>
+    <circle cx="880" cy="540" r="0.8" fill="#e4a432"/>
+  </g>
+</svg>
