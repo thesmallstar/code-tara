@@ -153,6 +153,7 @@ class DraftCommentCreate(BaseModel):
     start_side: Optional[str] = None
     body_md: str
     label: Optional[str] = None
+    severity: str = "high"
 
 
 class DraftCommentUpdate(BaseModel):
@@ -160,6 +161,7 @@ class DraftCommentUpdate(BaseModel):
     path: Optional[str] = None
     line: Optional[int] = None
     label: Optional[str] = None
+    severity: Optional[str] = None
 
 
 class DraftCommentResponse(BaseModel):
@@ -171,6 +173,7 @@ class DraftCommentResponse(BaseModel):
     start_side: Optional[str] = None
     body_md: Optional[str] = None
     label: Optional[str] = None
+    severity: str = "high"
     status: str
     github_comment_id: Optional[int] = None
     created_at: Optional[datetime] = None

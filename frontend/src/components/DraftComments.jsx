@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown'
 import { api } from '../lib/api'
 import StatusBadge from './StatusBadge'
 import { COMMENT_LABELS, labelClasses } from '../lib/labels'
+import { SEVERITY_LEVELS, severityClasses, sortBySeverity } from '../lib/severity'
 
 function LabelPicker({ value, onChange }) {
   return (
@@ -24,17 +25,47 @@ function LabelPicker({ value, onChange }) {
   )
 }
 
-function DraftRow({ draft, onSend, onDelete, onEdit, onLocate }) {
+function SeverityPicker({ value, onChange }) {
+  return (
+    <div className="flex items-center gap-1 flex-wrap">
+      {SEVERITY_LEVELS.map(({ value: v }) => (
+        <button
+          key={v}
+          onClick={() => onChange(v)}
+          className={`text-xs px-2 py-0.5 rounded-full border transition-colors
+            ${value === v
+              ? `${severityClasses(v)} border-transparent ring-1 ring-offset-1 ring-gray-400`
+              : 'border-gray-200 text-gray-400 hover:bg-gray-50'
+            }`}
+        >
+          {v}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function Spinner() {
+  return (
+    <svg className="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" opacity="0.25" />
+      <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function DraftRow({ draft, onSend, onDelete, onEdit, onLocate, isSending }) {
   const [editing, setEditing] = useState(false)
   const [body, setBody] = useState(draft.body_md || '')
   const [label, setLabel] = useState(draft.label || null)
+  const [severity, setSeverity] = useState(draft.severity || 'high')
   const [saving, setSaving] = useState(false)
 
   const save = async () => {
     setSaving(true)
     try {
-      await api.updateDraft(draft.id, { body_md: body, label })
-      onEdit({ ...draft, body_md: body, label })
+      await api.updateDraft(draft.id, { body_md: body, label, severity })
+      onEdit({ ...draft, body_md: body, label, severity })
       setEditing(false)
     } finally {
       setSaving(false)
@@ -45,6 +76,7 @@ function DraftRow({ draft, onSend, onDelete, onEdit, onLocate }) {
     setEditing(false)
     setBody(draft.body_md || '')
     setLabel(draft.label || null)
+    setSeverity(draft.severity || 'high')
   }
 
   return (
@@ -58,10 +90,19 @@ function DraftRow({ draft, onSend, onDelete, onEdit, onLocate }) {
             <span className="break-all">{draft.path}</span>
             <span>:{draft.line}</span>
           </button>
-          {draft.label && !editing && (
-            <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium ${labelClasses(draft.label)}`}>
-              {draft.label}
-            </span>
+          {!editing && (
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {draft.severity && (
+                <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium ${severityClasses(draft.severity)}`}>
+                  {draft.severity}
+                </span>
+              )}
+              {draft.label && (
+                <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium ${labelClasses(draft.label)}`}>
+                  {draft.label}
+                </span>
+              )}
+            </div>
           )}
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
@@ -71,6 +112,7 @@ function DraftRow({ draft, onSend, onDelete, onEdit, onLocate }) {
 
       {editing ? (
         <div className="space-y-2">
+          <SeverityPicker value={severity} onChange={setSeverity} />
           <LabelPicker value={label} onChange={setLabel} />
           <textarea
             value={body}
@@ -105,19 +147,23 @@ function DraftRow({ draft, onSend, onDelete, onEdit, onLocate }) {
         <div className="flex gap-2 mt-2">
           <button
             onClick={() => onSend(draft.id)}
-            className="text-xs px-3 py-1 bg-gray-900 text-white rounded hover:bg-gray-800"
+            disabled={isSending}
+            className="text-xs px-3 py-1 bg-gray-900 text-white rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
           >
-            Send to GitHub
+            {isSending && <Spinner />}
+            {isSending ? 'Sending…' : 'Send to GitHub'}
           </button>
           <button
             onClick={() => setEditing(true)}
-            className="text-xs px-3 py-1 border border-gray-300 rounded hover:bg-gray-50"
+            disabled={isSending}
+            className="text-xs px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
           >
             Edit
           </button>
           <button
             onClick={() => onDelete(draft.id)}
-            className="text-xs px-3 py-1 border border-red-200 text-red-500 rounded hover:bg-red-50"
+            disabled={isSending}
+            className="text-xs px-3 py-1 border border-red-200 text-red-500 rounded hover:bg-red-50 disabled:opacity-50"
           >
             Delete
           </button>
@@ -134,7 +180,7 @@ export default function DraftComments({ chunkId, trigger, onLocate }) {
 
   const load = () => {
     if (!chunkId) return
-    api.getDrafts(chunkId).then(setDrafts).catch(() => {})
+    api.getDrafts(chunkId).then((d) => setDrafts(sortBySeverity(d))).catch(() => {})
   }
 
   useEffect(load, [chunkId, trigger])
@@ -144,7 +190,7 @@ export default function DraftComments({ chunkId, trigger, onLocate }) {
     setError(null)
     try {
       const updated = await api.sendDraft(draftId)
-      setDrafts((prev) => prev.map((d) => (d.id === draftId ? updated : d)))
+      setDrafts((prev) => sortBySeverity(prev.map((d) => (d.id === draftId ? updated : d))))
     } catch (err) {
       setError(err.message)
     } finally {
@@ -162,7 +208,7 @@ export default function DraftComments({ chunkId, trigger, onLocate }) {
   }
 
   const handleEdit = (updated) => {
-    setDrafts((prev) => prev.map((d) => (d.id === updated.id ? updated : d)))
+    setDrafts((prev) => sortBySeverity(prev.map((d) => (d.id === updated.id ? updated : d))))
   }
 
   if (!chunkId) return null
@@ -189,6 +235,7 @@ export default function DraftComments({ chunkId, trigger, onLocate }) {
               onDelete={handleDelete}
               onEdit={handleEdit}
               onLocate={onLocate}
+              isSending={sending === d.id}
             />
           ))
         )}

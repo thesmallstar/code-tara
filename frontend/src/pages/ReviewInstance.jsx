@@ -14,6 +14,20 @@ import ThreadsPanel from '../components/ThreadsPanel'
 const POLLING_INTERVAL = 3000
 const ACTIVE_STATUSES = ['PENDING', 'SYNCING', 'SUMMARIZING', 'CHUNKING', 'AI_RUNNING']
 
+function Spinner({ className = '' }) {
+  return (
+    <svg
+      className={`w-3 h-3 animate-spin ${className}`}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" opacity="0.25" />
+      <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+    </svg>
+  )
+}
+
 const REVIEW_ACTIONS = [
   { event: 'COMMENT',         label: 'Comment',         cls: 'border-gray-300 text-gray-700 hover:bg-gray-50' },
   { event: 'APPROVE',         label: 'Approve',         cls: 'border-green-400 text-green-700 hover:bg-green-50' },
@@ -99,8 +113,13 @@ function SubmitReviewPanel({ reviewId }) {
 }
 
 // ── Top bar ──────────────────────────────────────────────────────────────────
-function TopBar({ review, onSync, navigate }) {
+function TopBar({ review, onSync, onResume, navigate }) {
   const pr = review?.pull_request
+  const isActive = ACTIVE_STATUSES.includes(review?.status)
+  const pendingCount = (review?.chunks || []).filter(
+    (c) => c.status === 'PENDING' || c.status === 'ERROR'
+  ).length
+  const canResume = !isActive && pendingCount > 0
   return (
     <header className="border-b border-gray-200 bg-white px-4 py-2.5 flex items-center gap-4 shrink-0">
       <button
@@ -139,6 +158,15 @@ function TopBar({ review, onSync, navigate }) {
         )}
       </div>
       <div className="flex items-center gap-2 shrink-0">
+        {canResume && (
+          <button
+            onClick={onResume}
+            title={`Resume AI review on ${pendingCount} pending chunk${pendingCount === 1 ? '' : 's'}`}
+            className="text-xs px-2.5 py-1 border border-purple-300 text-purple-700 bg-purple-50 rounded-md hover:bg-purple-100"
+          >
+            resume ({pendingCount})
+          </button>
+        )}
         <button
           onClick={onSync}
           className="text-xs px-2.5 py-1 border border-gray-300 rounded-md hover:bg-gray-50 text-gray-600"
@@ -204,6 +232,7 @@ function ChunkPanel({ chunkSummary, totalChunks, draftTrigger, onDraftTrigger, h
   const [selectedLabel, setSelectedLabel] = useState(null)
   const [drafts, setDrafts] = useState([])
   const [checkedFiles, setCheckedFiles] = useState([])
+  const [submittingComment, setSubmittingComment] = useState(null)  // null | 'draft' | 'send'
 
   useEffect(() => {
     if (!chunkSummary) return
@@ -257,22 +286,47 @@ function ChunkPanel({ chunkSummary, totalChunks, draftTrigger, onDraftTrigger, h
     }
   }
 
+  const createDraftFromComposer = () =>
+    api.createDraft(chunk.id, {
+      path: addingComment.path,
+      line: addingComment.line,
+      side: addingComment.side,
+      body_md: newCommentBody.trim(),
+      label: selectedLabel,
+    })
+
+  const resetComposer = () => {
+    setAddingComment(null)
+    setNewCommentBody('')
+    setSelectedLabel(null)
+  }
+
   const handleSaveDraft = async () => {
-    if (!newCommentBody.trim() || !addingComment) return
+    if (!newCommentBody.trim() || !addingComment || submittingComment) return
+    setSubmittingComment('draft')
     try {
-      await api.createDraft(chunk.id, {
-        path: addingComment.path,
-        line: addingComment.line,
-        side: addingComment.side,
-        body_md: newCommentBody.trim(),
-        label: selectedLabel,
-      })
+      await createDraftFromComposer()
       onDraftTrigger()
-      setAddingComment(null)
-      setNewCommentBody('')
-      setSelectedLabel(null)
+      resetComposer()
     } catch (e) {
       console.error(e)
+    } finally {
+      setSubmittingComment(null)
+    }
+  }
+
+  const handleSaveAndSend = async () => {
+    if (!newCommentBody.trim() || !addingComment || submittingComment) return
+    setSubmittingComment('send')
+    try {
+      const draft = await createDraftFromComposer()
+      await api.sendDraft(draft.id)
+      onDraftTrigger()
+      resetComposer()
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setSubmittingComment(null)
     }
   }
 
@@ -432,14 +486,24 @@ function ChunkPanel({ chunkSummary, totalChunks, draftTrigger, onDraftTrigger, h
             <div className="flex gap-2 mt-2">
               <button
                 onClick={handleSaveDraft}
-                disabled={!newCommentBody.trim()}
-                className="text-xs px-3 py-1.5 bg-gray-900 text-white rounded hover:bg-gray-800 disabled:opacity-50"
+                disabled={!newCommentBody.trim() || !!submittingComment}
+                className="text-xs px-3 py-1.5 bg-gray-900 text-white rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
               >
-                Save as Draft
+                {submittingComment === 'draft' && <Spinner />}
+                {submittingComment === 'draft' ? 'Saving…' : 'Save as Draft'}
               </button>
               <button
-                onClick={() => setAddingComment(null)}
-                className="text-xs px-3 py-1.5 border border-gray-300 rounded hover:bg-gray-50"
+                onClick={handleSaveAndSend}
+                disabled={!newCommentBody.trim() || !!submittingComment}
+                className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
+              >
+                {submittingComment === 'send' && <Spinner />}
+                {submittingComment === 'send' ? 'Sending…' : 'Send to GitHub'}
+              </button>
+              <button
+                onClick={resetComposer}
+                disabled={!!submittingComment}
+                className="text-xs px-3 py-1.5 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -632,6 +696,10 @@ export default function ReviewInstance() {
   const [threads, setThreads] = useState([])
   const [tab, setTab] = useState(location.state?.tab || 'overview')   // 'overview' | 'chunk' | 'threads' | 're-review'
   const [rightPanelTab, setRightPanelTab] = useState('drafts')       // 'drafts' | 'chat'
+  const [rightPanelWidth, setRightPanelWidth] = useState(() => {
+    const saved = parseInt(localStorage.getItem('tara:rightPanelWidth') || '', 10)
+    return Number.isFinite(saved) ? saved : 320
+  })
   const [selectedChunk, setSelectedChunk] = useState(null)
   const [draftTrigger, setDraftTrigger] = useState(0)
   const [highlightedLine, setHighlightedLine] = useState(null)
@@ -708,9 +776,43 @@ export default function ReviewInstance() {
     }
   }
 
+  const handleResume = async () => {
+    try {
+      await api.resumeReview(id)
+      loadReview()
+    } catch (e) {
+      console.error(e)
+      setError(e.message)
+    }
+  }
+
   const handleReplyToThread = async (threadId, body) => {
     await api.replyToThread(threadId, body)
     loadThreads()
+  }
+
+  useEffect(() => {
+    localStorage.setItem('tara:rightPanelWidth', String(rightPanelWidth))
+  }, [rightPanelWidth])
+
+  const handleResizeStart = (e) => {
+    e.preventDefault()
+    const startX = e.clientX
+    const startWidth = rightPanelWidth
+    const onMove = (ev) => {
+      const next = startWidth + (startX - ev.clientX)
+      setRightPanelWidth(Math.max(260, Math.min(900, next)))
+    }
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove)
+      document.removeEventListener('mouseup', onUp)
+      document.body.style.userSelect = ''
+      document.body.style.cursor = ''
+    }
+    document.body.style.userSelect = 'none'
+    document.body.style.cursor = 'col-resize'
+    document.addEventListener('mousemove', onMove)
+    document.addEventListener('mouseup', onUp)
   }
 
   if (error) {
@@ -739,7 +841,7 @@ export default function ReviewInstance() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
-      <TopBar review={review} onSync={handleSync} navigate={navigate} />
+      <TopBar review={review} onSync={handleSync} onResume={handleResume} navigate={navigate} />
 
       {/* Status progress banner while processing */}
       {isActive && (
@@ -874,45 +976,59 @@ export default function ReviewInstance() {
 
           {/* Right panel: Drafts | Chat tabs (only when a chunk is selected) */}
           {tab === 'chunk' && selectedChunk && (
-            <div className="w-80 border-l border-gray-200 flex flex-col bg-white overflow-hidden shrink-0">
-              <div className="flex border-b border-gray-200 shrink-0">
-                {[
-                  { key: 'drafts', label: 'Drafts' },
-                  { key: 'chat', label: 'Chat' },
-                ].map(({ key, label }) => (
-                  <button
-                    key={key}
-                    onClick={() => setRightPanelTab(key)}
-                    className={`flex-1 text-xs py-2 font-medium border-b-2 transition-colors -mb-px
-                      ${rightPanelTab === key
-                        ? 'border-gray-900 text-gray-900'
-                        : 'border-transparent text-gray-400 hover:text-gray-600'
-                      }`}
-                  >
-                    {label}
-                  </button>
-                ))}
+            <>
+              <div
+                onMouseDown={handleResizeStart}
+                role="separator"
+                aria-orientation="vertical"
+                title="Drag to resize panel"
+                className="group w-2 cursor-col-resize bg-gray-100 hover:bg-blue-100 active:bg-blue-200 transition-colors shrink-0 flex items-center justify-center"
+              >
+                <div className="w-0.5 h-10 rounded-full bg-gray-300 group-hover:bg-blue-500 transition-colors pointer-events-none" />
               </div>
-              <div className="flex-1 overflow-hidden flex flex-col">
-                {rightPanelTab === 'drafts' && (
-                  <div className="flex-1 overflow-y-auto">
-                    <DraftComments
-                      chunkId={selectedChunk.id}
-                      trigger={draftTrigger}
-                      onLocate={(path, line) => {
-                        setHighlightedLine({ path, line })
-                        setTimeout(() => setHighlightedLine(null), 1500)
-                        const el = document.getElementById(`diff-${path}-${line}`)
-                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-                      }}
-                    />
-                  </div>
-                )}
-                {rightPanelTab === 'chat' && (
-                  <ChatPanel chunkId={selectedChunk.id} />
-                )}
+              <div
+                style={{ width: `${rightPanelWidth}px` }}
+                className="flex flex-col bg-white overflow-hidden shrink-0"
+              >
+                <div className="flex border-b border-gray-200 shrink-0">
+                  {[
+                    { key: 'drafts', label: 'Drafts' },
+                    { key: 'chat', label: 'Chat' },
+                  ].map(({ key, label }) => (
+                    <button
+                      key={key}
+                      onClick={() => setRightPanelTab(key)}
+                      className={`flex-1 text-xs py-2 font-medium border-b-2 transition-colors -mb-px
+                        ${rightPanelTab === key
+                          ? 'border-gray-900 text-gray-900'
+                          : 'border-transparent text-gray-400 hover:text-gray-600'
+                        }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex-1 overflow-hidden flex flex-col">
+                  {rightPanelTab === 'drafts' && (
+                    <div className="flex-1 overflow-y-auto">
+                      <DraftComments
+                        chunkId={selectedChunk.id}
+                        trigger={draftTrigger}
+                        onLocate={(path, line) => {
+                          setHighlightedLine({ path, line })
+                          setTimeout(() => setHighlightedLine(null), 1500)
+                          const el = document.getElementById(`diff-${path}-${line}`)
+                          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                        }}
+                      />
+                    </div>
+                  )}
+                  {rightPanelTab === 'chat' && (
+                    <ChatPanel chunkId={selectedChunk.id} />
+                  )}
+                </div>
               </div>
-            </div>
+            </>
           )}
         </div>
       </div>

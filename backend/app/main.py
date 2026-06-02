@@ -7,15 +7,46 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.ai import ProviderRegistry
+from app.database import SessionLocal
+from app.models import ReviewChunk, ReviewInstance
 from app.routers import chunks, github, prompts, re_reviews, reviews, threads
 
 ALEMBIC_INI = os.path.join(os.path.dirname(__file__), "..", "alembic.ini")
+
+STUCK_STATUSES = ("PENDING", "SYNCING", "SUMMARIZING", "CHUNKING", "AI_RUNNING")
+
+
+def reset_stuck_reviews() -> None:
+    """Background tasks die on uvicorn reload — stale processing statuses block resume."""
+    db = SessionLocal()
+    try:
+        stuck = (
+            db.query(ReviewInstance)
+            .filter(ReviewInstance.status.in_(STUCK_STATUSES))
+            .all()
+        )
+        for review in stuck:
+            chunks_left = (
+                db.query(ReviewChunk)
+                .filter(
+                    ReviewChunk.review_instance_id == review.id,
+                    ReviewChunk.status.in_(("PENDING", "ERROR")),
+                )
+                .count()
+            )
+            review.status = "READY" if chunks_left == 0 else "ERROR"
+            if chunks_left > 0 and not review.error_message:
+                review.error_message = "Processing was interrupted — use Resume to continue."
+        db.commit()
+    finally:
+        db.close()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     alembic_cfg = Config(ALEMBIC_INI)
     command.upgrade(alembic_cfg, "head")
+    reset_stuck_reviews()
     yield
 
 

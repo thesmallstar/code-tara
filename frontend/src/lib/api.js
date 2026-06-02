@@ -31,6 +31,7 @@ export const api = {
     req('POST', '/api/reviews', { pr_url: prUrl, model_provider: modelProvider }),
   getReview: (id) => req('GET', `/api/reviews/${id}`),
   syncReview: (id) => req('POST', `/api/reviews/${id}/sync`),
+  resumeReview: (id) => req('POST', `/api/reviews/${id}/resume`),
   submitReview: (id, event, body = '') => req('POST', `/api/reviews/${id}/submit`, { event, body }),
   getThreads: (reviewId) => req('GET', `/api/reviews/${reviewId}/threads`),
 

@@ -2,6 +2,49 @@
 
 ## Unreleased
 
+- **Date:** 2026-06-02
+- **What:** AI now assigns severity per draft comment (completes the future work flagged in the 2026-05-22 severity-ranking entry)
+- **How:**
+  - `backend/app/ai/prompts.py` — added a severity rubric to the `chunk_review` prompt (`critical` security/data-loss/crashes, `high` likely bugs, `medium` real-but-moderate issues, `low` nits/optional)
+  - `backend/app/ai/claude.py` & `backend/app/ai/codex.py` — added `severity` (enum `critical | high | medium | low`) to `_CHUNK_REVIEW_SCHEMA` and made it `required` so the model must set it
+  - `backend/app/reviews/service.py` — `_ai_review_chunks` now writes `severity=c.get("severity", "high")` instead of the hardcoded `"high"`
+- **Why:**
+  - The severity column, sort ranking, and UI badges shipped on 2026-05-22, but every AI-generated draft was written as `high`, so triage was meaningless — the LLM's own assessment of importance was discarded
+- **Notes:**
+  - `_validate_and_anchor_comments` already passes unknown comment fields through via `{**c, ...}`, so no validator change was needed
+  - The `.get("severity", "high")` fallback keeps the heuristic-chunker fallback path and any older cached output safe; the sort `case` in `chunks.py` already has `else_=0` for unexpected values
+  - No schema/migration change — the `DraftComment.severity` column already exists
+
+- **Date:** 2026-05-22
+- **What:** Added a "resume" button so AI review can pick up where it left off
+- **How:**
+  - `backend/app/reviews/service.py` — extracted the per-chunk AI loop into `_ai_review_chunks(db, ai, chunk_records, repo_path)`; added `resume_review(review_id)` + `_run_resume` that fetch only chunks with `status in ("PENDING", "ERROR")`, clear stale drafts on ERROR chunks (to avoid duplicates), re-ensure the repo clone, then run the AI loop for just those chunks
+  - `backend/app/routers/reviews.py` — `POST /api/reviews/{review_id}/resume` schedules `resume_review` as a background task; returns 400 if there are no pending/ERROR chunks
+  - `frontend/src/lib/api.js` — `api.resumeReview(id)`
+  - `frontend/src/pages/ReviewInstance.jsx` — `TopBar` shows a purple "resume (N)" button next to "re-run tara" when `!isActive && pendingCount > 0`; clicking calls the new endpoint and immediately re-fetches the review so polling kicks back in
+- **Why:**
+  - When the AI loop dies partway (server restart, exception in the loop, etc.) chunks stay PENDING and the only recovery was "re-run tara", which re-fetches PR data, re-summarizes, re-chunks, and re-runs the AI on every chunk. Resume is much cheaper because it touches only the unfinished chunks and skips the planning steps entirely
+- **Notes:**
+  - Resume reuses the existing chunks' `diff_content` / `line_map` from the DB so we don't re-call GitHub
+  - `ensure_repo` is idempotent so re-calling it on resume is safe and cheap (uses local cache)
+  - Drafts attached to ERROR chunks are deleted before retry so a partial previous run doesn't duplicate drafts; PENDING chunks have no drafts yet, so nothing to clear
+
+- **Date:** 2026-05-22
+- **What:** Added severity ranking to draft comments
+- **How:**
+  - `backend/app/models.py` — added `severity` column to `DraftComment` (`critical | high | medium | low`, default `high`, NOT NULL)
+  - `backend/alembic/versions/67321b344688_add_severity_to_draft_comments.py` — schema migration with `server_default='high'` to backfill existing rows
+  - `backend/app/schemas.py` — added `severity` to `DraftCommentCreate` (default `high`), `DraftCommentUpdate` (optional), and `DraftCommentResponse`
+  - `backend/app/routers/chunks.py` — `get_drafts` orders by severity desc → path → line (via SQLAlchemy `case`); `create_draft`/`update_draft` accept severity
+  - `backend/app/reviews/service.py` — AI-generated drafts written with `severity="high"` until the AI starts setting it dynamically
+  - `frontend/src/lib/severity.js` — severity → tailwind class + rank helpers + `sortBySeverity`
+  - `frontend/src/components/DraftComments.jsx` — severity badge in the card header, severity picker in the edit form, client-side sort on load/edit/send
+- **Why:**
+  - Reviewers had no way to triage drafts; all suggestions looked equally weighted. Severity ranking lets the AI surface the most important issues first and the reviewer focus there
+- **Notes:**
+  - For now severity is hardcoded to `high` for AI-generated drafts. Future work: let the AI assign severity per draft from the prompt
+  - The right panel in `ReviewInstance.jsx` is now resizable (drag handle, persisted to `localStorage` under `tara:rightPanelWidth`, 260–900px range)
+
 - **Date:** 2026-03-27
 - **What:** Restored `Submit Review` visibility in the review sidebar
 - **How:**
