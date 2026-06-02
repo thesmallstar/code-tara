@@ -57,8 +57,12 @@ _CHUNK_REVIEW_SCHEMA = {
                     "line": {"type": "integer"},
                     "side": {"type": "string", "enum": ["RIGHT"]},
                     "body": {"type": "string"},
+                    "severity": {
+                        "type": "string",
+                        "enum": ["critical", "high", "medium", "low"],
+                    },
                 },
-                "required": ["path", "line", "side", "body"],
+                "required": ["path", "line", "side", "body", "severity"],
                 "additionalProperties": False,
             },
         },

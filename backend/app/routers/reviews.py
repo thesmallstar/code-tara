@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import PullRequest, ReviewChunk, ReviewInstance, ReviewRequestCache, ReviewThread
-from app.reviews.service import parse_pr_url, process_review
+from app.reviews.service import parse_pr_url, process_review, resume_review
 from app.github.client import GitHubClient, get_github_token
 from app.schemas import (
     PullRequestInfo,
@@ -164,6 +164,25 @@ def sync_review(review_id: int, background_tasks: BackgroundTasks, db: Session =
     db.commit()
     background_tasks.add_task(process_review, review_id)
     return {"status": "sync started"}
+
+
+@router.post("/{review_id}/resume", status_code=202)
+def resume_review_endpoint(review_id: int, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    review = db.get(ReviewInstance, review_id)
+    if not review:
+        raise HTTPException(status_code=404, detail="Review not found")
+    pending_count = (
+        db.query(ReviewChunk)
+        .filter(
+            ReviewChunk.review_instance_id == review_id,
+            ReviewChunk.status.in_(["PENDING", "ERROR"]),
+        )
+        .count()
+    )
+    if pending_count == 0:
+        raise HTTPException(status_code=400, detail="No chunks to resume")
+    background_tasks.add_task(resume_review, review_id)
+    return {"status": "resume started", "pending_chunks": pending_count}
 
 
 @router.post("/{review_id}/submit", response_model=SubmitReviewResponse)

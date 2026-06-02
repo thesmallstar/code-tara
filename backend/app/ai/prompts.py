@@ -56,7 +56,13 @@ Rules:
 - Each comment must be specific and actionable.
 - Limit to the most important 3-5 issues. Do not nitpick style unless critical.
 - If there are no issues, return an empty comments array and a positive assessment.
-- In the assessment, you may include a mermaid diagram (```mermaid code fence) if it helps explain complex logic, data flow, or component relationships. Only when it genuinely adds clarity.""",
+- In the assessment, you may include a mermaid diagram (```mermaid code fence) if it helps explain complex logic, data flow, or component relationships. Only when it genuinely adds clarity.
+
+Assign each comment a severity:
+- critical: security vulnerabilities, data loss, crashes, or broken core functionality that must be fixed before merge.
+- high: likely bugs, incorrect logic, or significant maintainability problems that should be fixed.
+- medium: real issues worth addressing — edge cases, missing error handling, or moderate design concerns.
+- low: minor suggestions, style nits, or optional improvements.""",
     },
     "chat": {
         "label": "Chat",

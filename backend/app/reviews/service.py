@@ -218,7 +218,11 @@ def _run_pipeline(db: Session, review_id: int) -> None:
 
     # ── 4. AI review per chunk (inline comments) ─────────────────────────────
     _set_status(db, review, "AI_RUNNING")
+    _ai_review_chunks(db, ai, chunk_records, repo_path)
+    _set_status(db, review, "READY")
 
+
+def _ai_review_chunks(db: Session, ai, chunk_records, repo_path) -> None:
     for chunk, file_diffs, chunk_line_map in chunk_records:
         try:
             result = ai.review_chunk(
@@ -237,6 +241,7 @@ def _run_pipeline(db: Session, review_id: int) -> None:
                     line=c["line"],
                     side=c.get("side", "RIGHT"),
                     body_md=c.get("body", ""),
+                    severity=c.get("severity", "high"),
                 ))
 
             chunk.status = "AI_DONE"
@@ -246,6 +251,63 @@ def _run_pipeline(db: Session, review_id: int) -> None:
             chunk.ai_suggestions_md = f"_tara couldn't review this chunk: {e}_"
         db.commit()
 
+
+def resume_review(review_id: int) -> None:
+    """Resume AI processing on chunks that didn't complete (PENDING or ERROR)."""
+    db: Session = SessionLocal()
+    try:
+        _run_resume(db, review_id)
+    except Exception as exc:
+        logger.exception("Resume failed for review_id=%s", review_id)
+        db.rollback()
+        try:
+            review = db.get(ReviewInstance, review_id)
+            if review:
+                _set_status(db, review, "ERROR", str(exc))
+        except Exception:
+            pass
+    finally:
+        db.close()
+
+
+def _run_resume(db: Session, review_id: int) -> None:
+    review = db.get(ReviewInstance, review_id)
+    if not review:
+        return
+    pr = db.get(PullRequest, review.pull_request_id)
+    if not pr:
+        _set_status(db, review, "ERROR", "Associated PR record not found")
+        return
+
+    pending_chunks = (
+        db.query(ReviewChunk)
+        .filter(
+            ReviewChunk.review_instance_id == review_id,
+            ReviewChunk.status.in_(["PENDING", "ERROR"]),
+        )
+        .order_by(ReviewChunk.order_index)
+        .all()
+    )
+    if not pending_chunks:
+        _set_status(db, review, "READY")
+        return
+
+    # Clear stale drafts on ERROR chunks so retry doesn't duplicate
+    error_chunk_ids = [c.id for c in pending_chunks if c.status == "ERROR"]
+    if error_chunk_ids:
+        db.query(DraftComment).filter(DraftComment.review_chunk_id.in_(error_chunk_ids)).delete(synchronize_session=False)
+        db.commit()
+
+    repo_path = None
+    try:
+        repo_path = ensure_repo(pr.owner, pr.repo, pr_number=pr.pr_number, pr_files=[])
+    except Exception as e:
+        logger.warning("Could not ensure repo on resume (AI will work from diff only): %s", e)
+
+    _set_status(db, review, "AI_RUNNING")
+    ai = get_ai_provider(review.model_provider)
+    chunk_records = [(c, c.get_diff_content(), c.get_line_map()) for c in pending_chunks]
+    _ai_review_chunks(db, ai, chunk_records, repo_path)
     _set_status(db, review, "READY")
 
 

@@ -159,6 +159,7 @@ class DraftComment(Base):
     start_side = Column(String, nullable=True)
     body_md = Column(Text)
     label = Column(String, nullable=True)      # nit | bug | critical bug | suggestion | question
+    severity = Column(String, default="high", nullable=False)  # critical | high | medium | low
     status = Column(String, default="DRAFT")   # DRAFT | SENT
     github_comment_id = Column(Integer, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)

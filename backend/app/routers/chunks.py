@@ -1,6 +1,7 @@
 import json
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import case
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -184,10 +185,17 @@ def get_drafts(chunk_id: int, db: Session = Depends(get_db)):
     chunk = db.get(ReviewChunk, chunk_id)
     if not chunk:
         raise HTTPException(status_code=404, detail="Chunk not found")
+    severity_rank = case(
+        (DraftComment.severity == "critical", 4),
+        (DraftComment.severity == "high", 3),
+        (DraftComment.severity == "medium", 2),
+        (DraftComment.severity == "low", 1),
+        else_=0,
+    )
     drafts = (
         db.query(DraftComment)
         .filter(DraftComment.review_chunk_id == chunk_id)
-        .order_by(DraftComment.created_at)
+        .order_by(severity_rank.desc(), DraftComment.path, DraftComment.line)
         .all()
     )
     return drafts
@@ -217,6 +225,7 @@ def create_draft(chunk_id: int, body: DraftCommentCreate, db: Session = Depends(
         start_side=body.start_side,
         body_md=body.body_md,
         label=body.label,
+        severity=body.severity,
     )
     db.add(draft)
     db.commit()
@@ -237,6 +246,8 @@ def update_draft(draft_id: int, body: DraftCommentUpdate, db: Session = Depends(
         draft.line = body.line
     if body.label is not None:
         draft.label = body.label
+    if body.severity is not None:
+        draft.severity = body.severity
     db.commit()
     db.refresh(draft)
     return draft
