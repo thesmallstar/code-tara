@@ -54,6 +54,7 @@ You have access to the full repository — read the files to understand context 
 Rules:
 - Only comment on lines that exist in the provided diff (additions and context lines on the RIGHT side).
 - Each comment must be specific and actionable.
+- Tag every comment with exactly one label: "nit", "suggestion", "question", "bug", or "critical bug".
 - Limit to the most important 3-5 issues. Do not nitpick style unless critical.
 - If there are no issues, return an empty comments array and a positive assessment.
 - In the assessment, you may include a mermaid diagram (```mermaid code fence) if it helps explain complex logic, data flow, or component relationships. Only when it genuinely adds clarity.

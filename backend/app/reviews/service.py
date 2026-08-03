@@ -246,6 +246,7 @@ def _ai_review_chunks(db: Session, ai, chunk_records, repo_path) -> None:
                     side=c.get("side", "RIGHT"),
                     body_md=c.get("body", ""),
                     severity=c.get("severity", "high"),
+                    label=c.get("label"),
                 ))
 
             chunk.status = "AI_DONE"
