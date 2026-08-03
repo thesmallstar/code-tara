@@ -69,8 +69,8 @@ class OpengrepScanner(Scanner):
     binary = "opengrep"
     install_hint = (
         "curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash\n"
-        "git clone https://github.com/opengrep/opengrep-rules ~/opengrep-rules\n"
-        "Set OPENGREP_RULES_PATH if you clone the rules elsewhere."
+        "make seed-opengrep-rules  # clones the rules to ~/opengrep-rules\n"
+        "Set OPENGREP_RULES_PATH if you keep the rules elsewhere."
     )
 
     def is_available(self) -> bool:

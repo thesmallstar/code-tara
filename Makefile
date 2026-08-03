@@ -1,7 +1,7 @@
 -include .env
 export
 
-.PHONY: install dev kill frontend backend clean migrate makemigration test
+.PHONY: install dev kill frontend backend clean migrate makemigration test seed-opengrep-rules
 
 install:
 	cd frontend && npm install
@@ -22,6 +22,19 @@ backend:
 
 test:
 	cd backend && uv run pytest tests/ -v
+
+# Clone (or update) the opengrep rules registry for the opengrep scanner.
+# Rules land at OPENGREP_RULES_PATH (default ~/opengrep-rules); they are
+# user-supplied because of their Commons Clause license — never vendored.
+seed-opengrep-rules:
+	@RULES="$${OPENGREP_RULES_PATH:-$$HOME/opengrep-rules}"; \
+	if [ -d "$$RULES/.git" ] || [ -d "$$(readlink "$$RULES" 2>/dev/null)/.git" ]; then \
+		echo "Updating opengrep rules at $$RULES"; \
+		git -C "$$RULES" pull --ff-only; \
+	else \
+		echo "Cloning opengrep rules to $$RULES"; \
+		git clone --depth 1 https://github.com/opengrep/opengrep-rules "$$RULES"; \
+	fi
 
 migrate:
 	cd backend && uv run alembic upgrade head
