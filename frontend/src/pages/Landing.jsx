@@ -205,6 +205,17 @@ function getStoredProvider() {
   return localStorage.getItem(PROVIDER_KEY) || 'claude'
 }
 
+const SCANNERS_KEY = 'selectedScanners'
+
+function getStoredScanners() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(SCANNERS_KEY) || '[]')
+    return Array.isArray(stored) ? stored : []
+  } catch {
+    return []
+  }
+}
+
 function InstructionCard({ instruction, onSave, onReset }) {
   const [editing, setEditing] = useState(false)
   const [text, setText] = useState(instruction.text)
@@ -318,7 +329,15 @@ export default function Landing() {
   const [startingUrl, setStartingUrl] = useState(null)
   const [provider, setProviderState] = useState(getStoredProvider)
   const [scanners, setScanners] = useState([])
-  const [selectedScanners, setSelectedScanners] = useState([])
+  const [selectedScanners, setSelectedScannersState] = useState(getStoredScanners)
+
+  const setSelectedScanners = (updater) => {
+    setSelectedScannersState((prev) => {
+      const next = typeof updater === 'function' ? updater(prev) : updater
+      localStorage.setItem(SCANNERS_KEY, JSON.stringify(next))
+      return next
+    })
+  }
   const [rightTab, setRightTab] = useState('reviews')
   const [instructions, setInstructions] = useState([])
   const [instructionsLoading, setInstructionsLoading] = useState(false)
@@ -377,7 +396,14 @@ export default function Landing() {
   }
 
   useEffect(() => {
-    api.getScanners().then(setScanners).catch(() => setScanners([]))
+    api.getScanners()
+      .then((list) => {
+        setScanners(list)
+        // Drop remembered scanners that are no longer installed
+        const available = new Set(list.filter((s) => s.available).map((s) => s.name))
+        setSelectedScanners((prev) => prev.filter((name) => available.has(name)))
+      })
+      .catch(() => setScanners([]))
   }, [])
 
   useEffect(() => {
@@ -538,9 +564,25 @@ export default function Landing() {
 
             {scanners.length > 0 && (
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-gray-700">
-                  security scanners <span className="text-gray-400 font-normal">(optional)</span>
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-gray-700">
+                    security scanners <span className="text-gray-400 font-normal">(optional)</span>
+                  </label>
+                  {scanners.some((s) => s.available) && (
+                    <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={scanners.filter((s) => s.available).every((s) => selectedScanners.includes(s.name))}
+                        onChange={(e) => {
+                          const available = scanners.filter((s) => s.available).map((s) => s.name)
+                          setSelectedScanners(e.target.checked ? available : [])
+                        }}
+                        className="rounded border-gray-300"
+                      />
+                      select all
+                    </label>
+                  )}
+                </div>
                 {scanners.map((scanner) => (
                   <div key={scanner.name}>
                     <label
