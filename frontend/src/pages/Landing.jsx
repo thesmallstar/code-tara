@@ -489,7 +489,8 @@ export default function Landing() {
       {/* Header */}
       <header className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <img src="/lockup-light-bg.svg" alt="code-tara" className="h-6" />
+          <img src="/logo.png" alt="code-tara" className="h-7 w-7" />
+          <span className="text-lg font-semibold text-gray-900 mono">code-tara</span>
           <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">v0 · your ai reviewer</span>
         </div>
         <div className="flex items-center gap-3">
@@ -504,7 +505,7 @@ export default function Landing() {
         {/* Left: new review form */}
         <div className="w-full max-w-md px-10 py-12 border-r border-gray-100 shrink-0 overflow-y-auto">
           <div className="flex items-center gap-3 mb-2">
-            <img src="/symbol-gold.svg" alt="tara" className="w-10 h-10" />
+            <img src="/logo.png" alt="tara" className="w-10 h-10" />
             <h1 className="text-2xl font-semibold text-gray-900">hey, I'm tara 👋</h1>
           </div>
           <p className="text-gray-500 mb-8 text-sm leading-relaxed">
