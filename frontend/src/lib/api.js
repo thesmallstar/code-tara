@@ -18,6 +18,7 @@ async function req(method, path, body) {
 export const api = {
   health: () => req('GET', '/api/health'),
   getProviders: () => req('GET', '/api/providers'),
+  getScanners: () => req('GET', '/api/scanners'),
 
   // GitHub
   verifyGitHub: () => req('POST', '/api/github/verify'),
@@ -27,8 +28,8 @@ export const api = {
   // Reviews
   listReviews: (q = '', page = 1, perPage = 10) =>
     req('GET', `/api/reviews?q=${encodeURIComponent(q)}&page=${page}&per_page=${perPage}`),
-  createReview: (prUrl, modelProvider) =>
-    req('POST', '/api/reviews', { pr_url: prUrl, model_provider: modelProvider }),
+  createReview: (prUrl, modelProvider, scanners = []) =>
+    req('POST', '/api/reviews', { pr_url: prUrl, model_provider: modelProvider, scanners }),
   getReview: (id) => req('GET', `/api/reviews/${id}`),
   syncReview: (id) => req('POST', `/api/reviews/${id}/sync`),
   resumeReview: (id) => req('POST', `/api/reviews/${id}/resume`),

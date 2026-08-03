@@ -317,6 +317,8 @@ export default function Landing() {
   const [requestsLoading, setRequestsLoading] = useState(false)
   const [startingUrl, setStartingUrl] = useState(null)
   const [provider, setProviderState] = useState(getStoredProvider)
+  const [scanners, setScanners] = useState([])
+  const [selectedScanners, setSelectedScanners] = useState([])
   const [rightTab, setRightTab] = useState('reviews')
   const [instructions, setInstructions] = useState([])
   const [instructionsLoading, setInstructionsLoading] = useState(false)
@@ -325,6 +327,12 @@ export default function Landing() {
   const setProvider = (name) => {
     setProviderState(name)
     localStorage.setItem(PROVIDER_KEY, name)
+  }
+
+  const toggleScanner = (name) => {
+    setSelectedScanners((prev) =>
+      prev.includes(name) ? prev.filter((s) => s !== name) : [...prev, name]
+    )
   }
 
   const checkGitHub = () => {
@@ -367,6 +375,10 @@ export default function Landing() {
       .catch(() => setReviewRequests([]))
       .finally(() => setRequestsLoading(false))
   }
+
+  useEffect(() => {
+    api.getScanners().then(setScanners).catch(() => setScanners([]))
+  }, [])
 
   useEffect(() => {
     checkGitHub()
@@ -421,7 +433,7 @@ export default function Landing() {
     }
     setStartingUrl(item.pr_url)
     try {
-      const { review_id } = await api.createReview(item.pr_url, provider)
+      const { review_id } = await api.createReview(item.pr_url, provider, selectedScanners)
       const newReview = await api.getReview(review_id)
       setReviewRequests((prev) => prev.filter((r) => r.pr_url !== item.pr_url))
       setReviews((prev) => [...prev, newReview])
@@ -438,7 +450,7 @@ export default function Landing() {
     setLoading(true)
     setError(null)
     try {
-      const { review_id } = await api.createReview(prUrl.trim(), provider)
+      const { review_id } = await api.createReview(prUrl.trim(), provider, selectedScanners)
       navigate(`/review/${review_id}`)
     } catch (err) {
       setError(err.message)
@@ -523,6 +535,36 @@ export default function Landing() {
                 make sure <code className="bg-gray-100 px-1 rounded">{provider === 'claude' ? 'claude' : 'codex'}</code> CLI is authenticated
               </p>
             </div>
+
+            {scanners.length > 0 && (
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-gray-700">
+                  security scanners <span className="text-gray-400 font-normal">(optional)</span>
+                </label>
+                {scanners.map((scanner) => (
+                  <div key={scanner.name}>
+                    <label
+                      className={`flex items-center gap-2 text-sm
+                        ${scanner.available ? 'text-gray-700 cursor-pointer' : 'text-gray-400'}`}
+                    >
+                      <input
+                        type="checkbox"
+                        disabled={!scanner.available}
+                        checked={selectedScanners.includes(scanner.name)}
+                        onChange={() => toggleScanner(scanner.name)}
+                        className="rounded border-gray-300 disabled:opacity-40"
+                      />
+                      {scanner.label}
+                    </label>
+                    {!scanner.available && (
+                      <pre className="ml-6 mt-0.5 text-[11px] text-gray-400 bg-gray-50 rounded px-2 py-1 whitespace-pre-wrap font-mono">
+                        {`not installed — to enable:\n${scanner.install_hint}`}
+                      </pre>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
 
             {error && <p className="text-sm text-red-600">{error}</p>}
 
