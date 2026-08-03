@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/github.css'
@@ -198,11 +198,12 @@ function DiffLineRow({ line, highlightedContent, commentableLine, onCommentClick
           </td>
         )}
         {onCommentClick && isCommentable && (
-          <td className="pr-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <td className="pr-2">
             <button
               onClick={() => onCommentClick(line)}
               title="Add comment on this line"
-              className="text-xs text-gray-400 hover:text-gray-600 px-1"
+              className="text-xs leading-none w-4 h-4 rounded bg-blue-600 text-white font-semibold
+                opacity-0 group-hover:opacity-100 transition-all hover:bg-blue-700 hover:scale-110"
             >
               +
             </button>
@@ -259,7 +260,7 @@ function highlightLines(lines, filePath) {
   }
 }
 
-function FileDiff({ path, patch, lineMap, onAddComment, drafts, onDraftUpdate, highlightedLine, checked, onToggleChecked, prInfo }) {
+function FileDiff({ path, patch, lineMap, onAddComment, drafts, onDraftUpdate, highlightedLine, checked, onToggleChecked, prInfo, composer }) {
   const [collapsed, setCollapsed] = useState(false)
   const [expandedLines, setExpandedLines] = useState(new Set())
   const lines = parsePatch(patch)
@@ -345,19 +346,25 @@ function FileDiff({ path, patch, lineMap, onAddComment, drafts, onDraftUpdate, h
           <table className="w-full border-collapse text-xs">
             <tbody>
               {lines.map((line, i) => (
-                <DiffLineRow
-                  key={i}
-                  line={line}
-                  highlightedContent={highlightedHtml?.[i]}
-                  commentableLine={commentableSet.has(line.newLine)}
-                  onCommentClick={onAddComment ? (l) => onAddComment(path, l) : null}
-                  draftsForLine={line.newLine !== null ? draftsByLine[line.newLine] : null}
-                  expandedLines={expandedLines}
-                  onToggleDraft={toggleDraft}
-                  onDraftUpdate={onDraftUpdate}
-                  filePath={path}
-                  isHighlighted={highlightedLine && highlightedLine.path === path && highlightedLine.line === line.newLine}
-                />
+                <Fragment key={i}>
+                  <DiffLineRow
+                    line={line}
+                    highlightedContent={highlightedHtml?.[i]}
+                    commentableLine={commentableSet.has(line.newLine)}
+                    onCommentClick={onAddComment ? (l) => onAddComment(path, l) : null}
+                    draftsForLine={line.newLine !== null ? draftsByLine[line.newLine] : null}
+                    expandedLines={expandedLines}
+                    onToggleDraft={toggleDraft}
+                    onDraftUpdate={onDraftUpdate}
+                    filePath={path}
+                    isHighlighted={highlightedLine && highlightedLine.path === path && highlightedLine.line === line.newLine}
+                  />
+                  {composer && line.newLine !== null && composer.line === line.newLine && (
+                    <tr>
+                      <td colSpan={5} className="p-0">{composer.node}</td>
+                    </tr>
+                  )}
+                </Fragment>
               ))}
             </tbody>
           </table>
@@ -370,7 +377,7 @@ function FileDiff({ path, patch, lineMap, onAddComment, drafts, onDraftUpdate, h
   )
 }
 
-export default function DiffView({ diffContent, lineMap, onAddComment, drafts, onDraftUpdate, highlightedLine, checkedFiles, onToggleChecked, prInfo }) {
+export default function DiffView({ diffContent, lineMap, onAddComment, drafts, onDraftUpdate, highlightedLine, checkedFiles, onToggleChecked, prInfo, composer }) {
   const entries = Object.entries(diffContent || {})
   const checkedSet = new Set(checkedFiles || [])
 
@@ -414,6 +421,7 @@ export default function DiffView({ diffContent, lineMap, onAddComment, drafts, o
           checked={checkedSet.has(path)}
           onToggleChecked={onToggleChecked}
           prInfo={prInfo}
+          composer={composer && composer.path === path ? composer : null}
         />
       ))}
     </div>

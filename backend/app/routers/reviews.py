@@ -58,6 +58,7 @@ def _build_review_response(review: ReviewInstance, db: Session) -> ReviewInstanc
         id=review.id,
         status=review.status,
         model_provider=review.model_provider,
+        scanners=review.get_scanners(),
         summary_md=review.summary_md,
         pull_request=pr_info,
         chunks=[_chunk_summary(c) for c in chunks],
@@ -133,6 +134,7 @@ def create_review(data: ReviewCreate, background_tasks: BackgroundTasks, db: Ses
         pull_request_id=pr.id,
         status="PENDING",
         model_provider=data.model_provider,
+        scanners_json=json.dumps(data.scanners or []),
     )
     db.add(review)
     db.commit()

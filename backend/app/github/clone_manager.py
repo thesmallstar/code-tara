@@ -5,7 +5,8 @@ Each review gets its own sparse clone at repos/<owner>/<repo>-pr-<number>/
 containing only the files touched by the PR. Clones are shallow (--depth 1)
 and checked out to the PR branch via pull/<number>/head.
 
-On re-review or chat, we git-pull to pick up new commits.
+On re-review or chat, we re-fetch pull/<number>/head and hard-reset to it
+(the local pr-head branch has no upstream, so plain git-pull cannot work).
 Users can clean up disk space from the UI.
 """
 
@@ -83,17 +84,26 @@ def ensure_repo(owner: str, repo: str, pr_number: int,
     Sparse-clone the PR branch, or pull if it already exists.
 
     First call: shallow clone + fetch PR ref + sparse-checkout PR files.
-    Subsequent calls: git pull to pick up new commits.
+    Subsequent calls: fetch the PR ref again, hard-reset to it, and refresh
+    the sparse-checkout list so files added by new commits materialize.
     """
     REPOS_DIR.mkdir(exist_ok=True)
     owner_dir = REPOS_DIR / owner
     owner_dir.mkdir(exist_ok=True)
 
     repo_path = _repo_path(owner, repo, pr_number)
+    pr_ref = f"pull/{pr_number}/head"
 
     if repo_path.exists():
-        logger.info("Clone exists at %s, pulling latest", repo_path)
-        _run(["git", "pull", "--depth", "1", "-q"], cwd=repo_path)
+        logger.info("Clone exists at %s, syncing to PR head", repo_path)
+        rc, err = _run(["git", "fetch", "--depth", "1", "origin", pr_ref], cwd=repo_path)
+        if rc != 0:
+            raise RuntimeError(f"Failed to fetch PR #{pr_number} (exit {rc}):\n{err}")
+        rc, err = _run(["git", "reset", "--hard", "FETCH_HEAD"], cwd=repo_path)
+        if rc != 0:
+            raise RuntimeError(f"Failed to reset to PR head (exit {rc}):\n{err}")
+        if pr_files:
+            _run(["git", "sparse-checkout", "set", "--no-cone"] + pr_files, cwd=repo_path)
         return repo_path
 
     # Fresh sparse clone
@@ -107,7 +117,6 @@ def ensure_repo(owner: str, repo: str, pr_number: int,
         raise RuntimeError(f"Clone failed (exit {rc}):\n{err}")
 
     # Fetch the PR branch
-    pr_ref = f"pull/{pr_number}/head"
     rc, err = _run(
         ["git", "fetch", "--depth", "1", "origin", f"{pr_ref}:pr-head"],
         cwd=repo_path,

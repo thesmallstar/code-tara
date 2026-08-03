@@ -61,8 +61,12 @@ _CHUNK_REVIEW_SCHEMA = {
                         "type": "string",
                         "enum": ["critical", "high", "medium", "low"],
                     },
+                    "label": {
+                        "type": "string",
+                        "enum": ["nit", "suggestion", "question", "bug", "critical bug"],
+                    },
                 },
-                "required": ["path", "line", "side", "body", "severity"],
+                "required": ["path", "line", "side", "body", "severity", "label"],
                 "additionalProperties": False,
             },
         },

@@ -33,8 +33,12 @@ class ReviewInstance(Base):
     status = Column(String, default="PENDING")
     summary_md = Column(Text)
     model_provider = Column(String, default="claude")
+    scanners_json = Column(Text, default="[]")   # JSON: list[str] of scanner names
     error_message = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    def get_scanners(self) -> list:
+        return json.loads(self.scanners_json or "[]")
 
 
 class ReviewChunk(Base):
@@ -160,6 +164,7 @@ class DraftComment(Base):
     body_md = Column(Text)
     label = Column(String, nullable=True)      # nit | bug | critical bug | suggestion | question
     severity = Column(String, default="high", nullable=False)  # critical | high | medium | low
+    source = Column(String, default="ai")      # ai | opengrep | gitleaks | osv-scanner | checkov
     status = Column(String, default="DRAFT")   # DRAFT | SENT
     github_comment_id = Column(Integer, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)

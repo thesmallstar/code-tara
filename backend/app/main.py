@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.ai import ProviderRegistry
 from app.database import SessionLocal
 from app.models import ReviewChunk, ReviewInstance
-from app.routers import chunks, github, prompts, re_reviews, reviews, threads
+from app.routers import chunks, github, prompts, re_reviews, reviews, scanners, threads
 
 ALEMBIC_INI = os.path.join(os.path.dirname(__file__), "..", "alembic.ini")
 
@@ -66,6 +66,7 @@ app.include_router(re_reviews.router)
 app.include_router(chunks.router)
 app.include_router(threads.router)
 app.include_router(prompts.router)
+app.include_router(scanners.router)
 
 
 @app.get("/api/health")

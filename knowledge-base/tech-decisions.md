@@ -133,3 +133,23 @@
 - **Decision:** Prompt/instruction editor embedded as a "Instructions" tab on the landing page right panel, alongside "Reviews". Not a separate `/prompts` route.
 - **Why:** Keeps the landing page as the single hub. Users don't need a separate settings page for a feature they rarely change. Lazy-loaded on first tab switch.
 - **Alternatives considered:** Separate `/prompts` page (built first, then removed — felt disconnected from the main flow)
+
+---
+
+## Optional security scanners (opengrep, gitleaks, osv-scanner, checkov)
+
+- **Date:** 2026-08-04
+- **Status:** Decided
+- **Decision:** A generic scanner framework (`backend/app/scanners/`) wraps free, user-installed CLI security tools and posts their findings as inline draft comments alongside the AI review. Four scanners: opengrep (SAST), gitleaks (secrets), osv-scanner (dependency CVEs), checkov (IaC). All are **off by default** and opted into per review via checkboxes in the start-review form; unavailable ones render disabled with install instructions (`GET /api/scanners` reports availability via `shutil.which`). Findings run against the sparse PR checkout after chunk planning, anchor only to lines in the PR diff (exact match — findings on unchanged lines are pre-existing issues and are dropped), and land as `DraftComment` rows with a `source` column distinguishing them from AI comments. One scanner failing never blocks the review or other scanners.
+- **Why:** Deterministic scanners catch classes of issues (committed secrets, known CVEs, injection patterns) cheaply and reproducibly; the AI review can then discuss rather than rediscover them. Shelling out to user-installed binaries keeps this repo dependency-free and license-clean.
+- **Licensing:** opengrep engine is LGPL-2.1; gitleaks MIT; osv-scanner and checkov Apache-2.0 — all fine to invoke as external tools. **opengrep-rules carries a Commons Clause condition** (no selling a product whose value derives substantially from the rules), so the rules are never vendored — users clone `opengrep/opengrep-rules` themselves and point `OPENGREP_RULES_PATH` at it. Any future paid/hosted offering would need to revisit the rules source.
+- **Alternatives considered:** Semgrep (registry rules have a restrictive license — opengrep is the community fork), Trivy for SCA (Apache-2.0 but its secrets/IaC modes duplicate gitleaks/checkov; osv-scanner is lighter), Bandit/gosec (per-language, largely covered by opengrep rules; would double-report).
+
+---
+
+## Re-review checkout fix: fetch + hard-reset, not git pull
+
+- **Date:** 2026-08-04
+- **Status:** Decided
+- **Decision:** When a PR clone already exists, `ensure_repo` re-fetches `pull/<n>/head`, hard-resets to `FETCH_HEAD`, and refreshes the sparse-checkout file list (checking return codes). Previously it ran `git pull`, which always failed silently because the local `pr-head` branch has no upstream — re-reviews and chat used the stale first-review checkout while line maps came from the fresh API diff.
+- **Why:** Scanners and the AI both read the checkout; a stale checkout silently misanchors comments and scans old code.

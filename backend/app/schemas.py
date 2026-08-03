@@ -37,6 +37,14 @@ class PullRequestInfo(BaseModel):
 class ReviewCreate(BaseModel):
     pr_url: str
     model_provider: str = "claude"   # "codex" | "claude"
+    scanners: list[str] = []         # scanner names to run; all off by default
+
+
+class ScannerInfo(BaseModel):
+    name: str
+    label: str
+    available: bool
+    install_hint: str
 
 
 class ReviewChunkSummary(BaseModel):
@@ -57,6 +65,7 @@ class ReviewInstanceResponse(BaseModel):
     id: int
     status: str
     model_provider: Optional[str] = None
+    scanners: list[str] = []
     summary_md: Optional[str] = None
     pull_request: Optional[PullRequestInfo] = None
     chunks: list[ReviewChunkSummary] = []
@@ -174,6 +183,7 @@ class DraftCommentResponse(BaseModel):
     body_md: Optional[str] = None
     label: Optional[str] = None
     severity: str = "high"
+    source: Optional[str] = "ai"
     status: str
     github_comment_id: Optional[int] = None
     created_at: Optional[datetime] = None

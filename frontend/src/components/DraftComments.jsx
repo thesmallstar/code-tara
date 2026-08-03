@@ -92,6 +92,11 @@ function DraftRow({ draft, onSend, onDelete, onEdit, onLocate, isSending }) {
           </button>
           {!editing && (
             <div className="flex items-center gap-1.5 flex-wrap">
+              {draft.source && draft.source !== 'ai' && (
+                <span className="inline-block text-xs px-2 py-0.5 rounded-full font-medium bg-purple-50 text-purple-700">
+                  {draft.source}
+                </span>
+              )}
               {draft.severity && (
                 <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium ${severityClasses(draft.severity)}`}>
                   {draft.severity}

@@ -71,6 +71,32 @@ make dev
 - Frontend: http://localhost:3000
 - Backend API + docs: http://localhost:8000/docs
 
+### 6. Security scanners (optional)
+
+tara can run free security scanners on each PR and leave their findings as
+inline comments alongside the AI review. Every scanner is **off by default** —
+tick the ones you want in the start-review form. Install only what you need:
+
+```bash
+# Opengrep (SAST) — engine + rules
+curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash
+make seed-opengrep-rules   # clones the rules registry to ~/opengrep-rules
+
+# Gitleaks (committed secrets)
+brew install gitleaks
+
+# OSV-Scanner (dependency vulnerabilities)
+brew install osv-scanner
+
+# Checkov (Terraform / K8s / Dockerfile misconfigurations)
+brew install checkov       # or: pip install checkov
+```
+
+The opengrep rules are licensed with a Commons Clause condition, so they are
+never bundled — `make seed-opengrep-rules` clones them for you. Set
+`OPENGREP_RULES_PATH` in `.env` if you keep them somewhere else. Scanners that
+aren't installed simply show up disabled in the UI with these instructions.
+
 ---
 
 ## Makefile targets
@@ -82,6 +108,7 @@ make dev
 | `make frontend` | Start only the frontend (Vite dev server) |
 | `make backend` | Start only the backend (uvicorn --reload) |
 | `make kill` | Kill processes on ports 8000 and 3000 |
+| `make seed-opengrep-rules` | Clone/update the opengrep rules registry |
 | `make clean` | Remove node_modules, .venv, dist, DB |
 
 ---

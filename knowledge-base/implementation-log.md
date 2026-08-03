@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- **Date:** 2026-08-04
+- **What:** Optional security scanners (opengrep, gitleaks, osv-scanner, checkov) with inline findings, plus a fix for stale re-review checkouts
+- **How:**
+  - `backend/app/scanners/` — new scanner framework: `base.py` (Scanner ABC + ScanFinding), one module per tool, registry with `list_scanners()` / `run_scanners()`; opengrep rules come from a user-cloned `OPENGREP_RULES_PATH` and only rule dirs matching changed-file languages run
+  - `backend/app/routers/scanners.py` — `GET /api/scanners` reporting availability + install hints
+  - `backend/app/reviews/service.py` — `SCANNING` stage after chunk planning; findings anchored to exact diff lines (file-level findings to the file's first commentable line) and saved as `DraftComment`s with `source=<scanner>`
+  - `backend/app/models.py` + alembic `b7e3d1f2c4a5` — `review_instances.scanners_json`, `draft_comments.source`
+  - `backend/app/github/clone_manager.py` — exists-path now fetches `pull/<n>/head` + hard-resets to `FETCH_HEAD` and refreshes sparse-checkout (old `git pull` failed silently: `pr-head` has no upstream)
+  - `frontend/src/pages/Landing.jsx` — scanner checkboxes in the start-review form, off by default, disabled with install instructions when a binary is missing; `frontend/src/components/DraftComments.jsx` — source badge on scanner comments
+- **Why:**
+  - Deterministic scanners catch secrets/CVEs/injection patterns cheaply; keeping them opt-in, user-installed CLIs keeps the repo dependency-free and license-clean (see tech-decisions: opengrep-rules Commons Clause)
+- **Verification:** `uv run pytest tests/test_scanners.py` (18 passed; the 4 pre-existing `test_reviews.py` failures also fail on `main`), `npm -C frontend run build`
+
 - **Date:** 2026-06-02
 - **What:** AI now assigns severity per draft comment (completes the future work flagged in the 2026-05-22 severity-ranking entry)
 - **How:**
@@ -44,7 +57,6 @@
 - **Notes:**
   - For now severity is hardcoded to `high` for AI-generated drafts. Future work: let the AI assign severity per draft from the prompt
   - The right panel in `ReviewInstance.jsx` is now resizable (drag handle, persisted to `localStorage` under `tara:rightPanelWidth`, 260–900px range)
-
 - **Date:** 2026-03-27
 - **What:** Restored `Submit Review` visibility in the review sidebar
 - **How:**

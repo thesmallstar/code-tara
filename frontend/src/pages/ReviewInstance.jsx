@@ -126,7 +126,7 @@ function TopBar({ review, onSync, onResume, navigate }) {
         onClick={() => navigate('/')}
         className="text-sm text-gray-400 hover:text-gray-600 mono flex items-center gap-2"
       >
-        <img src="/symbol-gold.svg" alt="tara" className="w-6 h-6" />
+        <img src="/logo.png" alt="tara" className="w-6 h-6" />
         ← code-tara
       </button>
       <div className="flex-1 min-w-0">
@@ -330,6 +330,73 @@ function ChunkPanel({ chunkSummary, totalChunks, draftTrigger, onDraftTrigger, h
     }
   }
 
+  // Rendered inline in the diff, directly under the clicked line
+  const composerNode = addingComment ? (
+    <div className="mx-12 my-1 p-3 border border-gray-300 rounded-lg bg-white shadow-sm">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs mono text-gray-500">
+          Comment on {addingComment.path}:{addingComment.line}
+        </span>
+        <button
+          onClick={resetComposer}
+          className="text-xs text-gray-400 hover:text-gray-600"
+        >
+          ✕
+        </button>
+      </div>
+      {/* Label picker */}
+      <div className="flex items-center gap-1.5 flex-wrap mb-2">
+        {COMMENT_LABELS.map(({ value }) => (
+          <button
+            key={value}
+            onClick={() => setSelectedLabel(selectedLabel === value ? null : value)}
+            className={`text-xs px-2 py-0.5 rounded-full border transition-colors
+              ${selectedLabel === value
+                ? `${labelClasses(value)} border-transparent ring-1 ring-gray-400`
+                : 'border-gray-200 text-gray-400 hover:bg-gray-50'
+              }`}
+          >
+            {value}
+          </button>
+        ))}
+      </div>
+      <textarea
+        value={newCommentBody}
+        onChange={(e) => setNewCommentBody(e.target.value)}
+        placeholder="Write your review comment…"
+        rows={4}
+        autoFocus
+        className="w-full text-sm px-3 py-2 border border-gray-300 rounded resize-y
+          focus:outline-none focus:ring-2 focus:ring-gray-900"
+      />
+      <div className="flex gap-2 mt-2">
+        <button
+          onClick={handleSaveDraft}
+          disabled={!newCommentBody.trim() || !!submittingComment}
+          className="text-xs px-3 py-1.5 bg-gray-900 text-white rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
+        >
+          {submittingComment === 'draft' && <Spinner />}
+          {submittingComment === 'draft' ? 'Saving…' : 'Save as Draft'}
+        </button>
+        <button
+          onClick={handleSaveAndSend}
+          disabled={!newCommentBody.trim() || !!submittingComment}
+          className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
+        >
+          {submittingComment === 'send' && <Spinner />}
+          {submittingComment === 'send' ? 'Sending…' : 'Send to GitHub'}
+        </button>
+        <button
+          onClick={resetComposer}
+          disabled={!!submittingComment}
+          className="text-xs px-3 py-1.5 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  ) : null
+
   if (!chunkSummary) {
     return (
       <div className="flex items-center justify-center h-full text-sm text-gray-400">
@@ -442,74 +509,9 @@ function ChunkPanel({ chunkSummary, totalChunks, draftTrigger, onDraftTrigger, h
           checkedFiles={checkedFiles}
           onToggleChecked={handleToggleCheckedFile}
           prInfo={prInfo}
+          composer={addingComment ? { path: addingComment.path, line: addingComment.line, node: composerNode } : null}
         />
 
-        {/* Inline comment composer */}
-        {addingComment && (
-          <div className="mt-4 p-4 border border-gray-300 rounded-lg bg-white shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs mono text-gray-500">
-                Comment on {addingComment.path}:{addingComment.line}
-              </span>
-              <button
-                onClick={() => setAddingComment(null)}
-                className="text-xs text-gray-400 hover:text-gray-600"
-              >
-                ✕
-              </button>
-            </div>
-            {/* Label picker */}
-            <div className="flex items-center gap-1.5 flex-wrap mb-2">
-              {COMMENT_LABELS.map(({ value }) => (
-                <button
-                  key={value}
-                  onClick={() => setSelectedLabel(selectedLabel === value ? null : value)}
-                  className={`text-xs px-2 py-0.5 rounded-full border transition-colors
-                    ${selectedLabel === value
-                      ? `${labelClasses(value)} border-transparent ring-1 ring-gray-400`
-                      : 'border-gray-200 text-gray-400 hover:bg-gray-50'
-                    }`}
-                >
-                  {value}
-                </button>
-              ))}
-            </div>
-            <textarea
-              value={newCommentBody}
-              onChange={(e) => setNewCommentBody(e.target.value)}
-              placeholder="Write your review comment…"
-              rows={4}
-              autoFocus
-              className="w-full text-sm px-3 py-2 border border-gray-300 rounded resize-y
-                focus:outline-none focus:ring-2 focus:ring-gray-900"
-            />
-            <div className="flex gap-2 mt-2">
-              <button
-                onClick={handleSaveDraft}
-                disabled={!newCommentBody.trim() || !!submittingComment}
-                className="text-xs px-3 py-1.5 bg-gray-900 text-white rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
-              >
-                {submittingComment === 'draft' && <Spinner />}
-                {submittingComment === 'draft' ? 'Saving…' : 'Save as Draft'}
-              </button>
-              <button
-                onClick={handleSaveAndSend}
-                disabled={!newCommentBody.trim() || !!submittingComment}
-                className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
-              >
-                {submittingComment === 'send' && <Spinner />}
-                {submittingComment === 'send' ? 'Sending…' : 'Send to GitHub'}
-              </button>
-              <button
-                onClick={resetComposer}
-                disabled={!!submittingComment}
-                className="text-xs px-3 py-1.5 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   )

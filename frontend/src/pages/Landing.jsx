@@ -205,6 +205,17 @@ function getStoredProvider() {
   return localStorage.getItem(PROVIDER_KEY) || 'claude'
 }
 
+const SCANNERS_KEY = 'selectedScanners'
+
+function getStoredScanners() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(SCANNERS_KEY) || '[]')
+    return Array.isArray(stored) ? stored : []
+  } catch {
+    return []
+  }
+}
+
 function InstructionCard({ instruction, onSave, onReset }) {
   const [editing, setEditing] = useState(false)
   const [text, setText] = useState(instruction.text)
@@ -317,6 +328,16 @@ export default function Landing() {
   const [requestsLoading, setRequestsLoading] = useState(false)
   const [startingUrl, setStartingUrl] = useState(null)
   const [provider, setProviderState] = useState(getStoredProvider)
+  const [scanners, setScanners] = useState([])
+  const [selectedScanners, setSelectedScannersState] = useState(getStoredScanners)
+
+  const setSelectedScanners = (updater) => {
+    setSelectedScannersState((prev) => {
+      const next = typeof updater === 'function' ? updater(prev) : updater
+      localStorage.setItem(SCANNERS_KEY, JSON.stringify(next))
+      return next
+    })
+  }
   const [rightTab, setRightTab] = useState('reviews')
   const [instructions, setInstructions] = useState([])
   const [instructionsLoading, setInstructionsLoading] = useState(false)
@@ -325,6 +346,12 @@ export default function Landing() {
   const setProvider = (name) => {
     setProviderState(name)
     localStorage.setItem(PROVIDER_KEY, name)
+  }
+
+  const toggleScanner = (name) => {
+    setSelectedScanners((prev) =>
+      prev.includes(name) ? prev.filter((s) => s !== name) : [...prev, name]
+    )
   }
 
   const checkGitHub = () => {
@@ -367,6 +394,17 @@ export default function Landing() {
       .catch(() => setReviewRequests([]))
       .finally(() => setRequestsLoading(false))
   }
+
+  useEffect(() => {
+    api.getScanners()
+      .then((list) => {
+        setScanners(list)
+        // Drop remembered scanners that are no longer installed
+        const available = new Set(list.filter((s) => s.available).map((s) => s.name))
+        setSelectedScanners((prev) => prev.filter((name) => available.has(name)))
+      })
+      .catch(() => setScanners([]))
+  }, [])
 
   useEffect(() => {
     checkGitHub()
@@ -421,7 +459,7 @@ export default function Landing() {
     }
     setStartingUrl(item.pr_url)
     try {
-      const { review_id } = await api.createReview(item.pr_url, provider)
+      const { review_id } = await api.createReview(item.pr_url, provider, selectedScanners)
       const newReview = await api.getReview(review_id)
       setReviewRequests((prev) => prev.filter((r) => r.pr_url !== item.pr_url))
       setReviews((prev) => [...prev, newReview])
@@ -438,7 +476,7 @@ export default function Landing() {
     setLoading(true)
     setError(null)
     try {
-      const { review_id } = await api.createReview(prUrl.trim(), provider)
+      const { review_id } = await api.createReview(prUrl.trim(), provider, selectedScanners)
       navigate(`/review/${review_id}`)
     } catch (err) {
       setError(err.message)
@@ -451,7 +489,8 @@ export default function Landing() {
       {/* Header */}
       <header className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <img src="/lockup-light-bg.svg" alt="code-tara" className="h-6" />
+          <img src="/logo.png" alt="code-tara" className="h-7 w-7" />
+          <span className="text-lg font-semibold text-gray-900 mono">code-tara</span>
           <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">v0 · your ai reviewer</span>
         </div>
         <div className="flex items-center gap-3">
@@ -466,7 +505,7 @@ export default function Landing() {
         {/* Left: new review form */}
         <div className="w-full max-w-md px-10 py-12 border-r border-gray-100 shrink-0 overflow-y-auto">
           <div className="flex items-center gap-3 mb-2">
-            <img src="/symbol-gold.svg" alt="tara" className="w-10 h-10" />
+            <img src="/logo.png" alt="tara" className="w-10 h-10" />
             <h1 className="text-2xl font-semibold text-gray-900">hey, I'm tara 👋</h1>
           </div>
           <p className="text-gray-500 mb-8 text-sm leading-relaxed">
@@ -523,6 +562,52 @@ export default function Landing() {
                 make sure <code className="bg-gray-100 px-1 rounded">{provider === 'claude' ? 'claude' : 'codex'}</code> CLI is authenticated
               </p>
             </div>
+
+            {scanners.length > 0 && (
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-gray-700">
+                    security scanners <span className="text-gray-400 font-normal">(optional)</span>
+                  </label>
+                  {scanners.some((s) => s.available) && (
+                    <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={scanners.filter((s) => s.available).every((s) => selectedScanners.includes(s.name))}
+                        onChange={(e) => {
+                          const available = scanners.filter((s) => s.available).map((s) => s.name)
+                          setSelectedScanners(e.target.checked ? available : [])
+                        }}
+                        className="rounded border-gray-300"
+                      />
+                      select all
+                    </label>
+                  )}
+                </div>
+                {scanners.map((scanner) => (
+                  <div key={scanner.name}>
+                    <label
+                      className={`flex items-center gap-2 text-sm
+                        ${scanner.available ? 'text-gray-700 cursor-pointer' : 'text-gray-400'}`}
+                    >
+                      <input
+                        type="checkbox"
+                        disabled={!scanner.available}
+                        checked={selectedScanners.includes(scanner.name)}
+                        onChange={() => toggleScanner(scanner.name)}
+                        className="rounded border-gray-300 disabled:opacity-40"
+                      />
+                      {scanner.label}
+                    </label>
+                    {!scanner.available && (
+                      <pre className="ml-6 mt-0.5 text-[11px] text-gray-400 bg-gray-50 rounded px-2 py-1 whitespace-pre-wrap font-mono">
+                        {`not installed — to enable:\n${scanner.install_hint}`}
+                      </pre>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
 
             {error && <p className="text-sm text-red-600">{error}</p>}
 

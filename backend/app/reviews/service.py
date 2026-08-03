@@ -23,6 +23,7 @@ from app.models import (
 )
 from app.reviews.chunker import create_chunks  # kept as fallback
 from app.ai import ProviderRegistry
+from app.scanners import run_scanners
 
 logger = logging.getLogger(__name__)
 
@@ -216,6 +217,9 @@ def _run_pipeline(db: Session, review_id: int) -> None:
         chunk_records.append((chunk, file_diffs, chunk_line_map))
     db.commit()
 
+    # ── 3b. Optional security scanners (deterministic, per-review opt-in) ───
+    _run_scanner_stage(db, review, repo_path, pr_files, line_maps, chunk_records)
+
     # ── 4. AI review per chunk (inline comments) ─────────────────────────────
     _set_status(db, review, "AI_RUNNING")
     _ai_review_chunks(db, ai, chunk_records, repo_path)
@@ -242,6 +246,7 @@ def _ai_review_chunks(db: Session, ai, chunk_records, repo_path) -> None:
                     side=c.get("side", "RIGHT"),
                     body_md=c.get("body", ""),
                     severity=c.get("severity", "high"),
+                    label=c.get("label"),
                 ))
 
             chunk.status = "AI_DONE"
@@ -309,6 +314,75 @@ def _run_resume(db: Session, review_id: int) -> None:
     chunk_records = [(c, c.get_diff_content(), c.get_line_map()) for c in pending_chunks]
     _ai_review_chunks(db, ai, chunk_records, repo_path)
     _set_status(db, review, "READY")
+
+
+def _run_scanner_stage(db, review, repo_path, pr_files, line_maps, chunk_records) -> None:
+    """Run the review's opted-in scanners against the PR checkout and save
+    anchorable findings as draft comments. Never fails the review."""
+    scanner_names = review.get_scanners()
+    if not scanner_names:
+        return
+    if repo_path is None:
+        logger.warning("Scanners selected but repo clone unavailable, skipping")
+        return
+    _set_status(db, review, "SCANNING")
+    try:
+        findings = run_scanners(scanner_names, repo_path, pr_files)
+        saved = _save_scanner_comments(db, findings, line_maps, chunk_records)
+        logger.info("Scanners: %d finding(s), %d saved as draft comments", len(findings), saved)
+    except Exception as e:
+        logger.warning("Scanner stage failed: %s", e)
+
+
+def _save_scanner_comments(db, findings, line_maps, chunk_records) -> int:
+    saved = 0
+    for finding in findings:
+        chunk = _chunk_for_path(chunk_records, finding.path)
+        line = _anchor_finding_line(line_maps, finding)
+        if chunk is None or line is None:
+            logger.info(
+                "Dropping unanchorable %s finding at %s:%s",
+                finding.scanner, finding.path, finding.line,
+            )
+            continue
+        db.add(DraftComment(
+            review_chunk_id=chunk.id,
+            path=finding.path,
+            line=line,
+            side="RIGHT",
+            body_md=_format_finding(finding),
+            source=finding.scanner,
+        ))
+        saved += 1
+    db.commit()
+    return saved
+
+
+def _chunk_for_path(chunk_records, path):
+    for chunk, file_diffs, _ in chunk_records:
+        if path in file_diffs:
+            return chunk
+    return None
+
+
+def _anchor_finding_line(line_maps, finding):
+    """Diff line to attach the finding to, or None to drop it.
+    File-level findings anchor to the file's first commentable line; line
+    findings must land exactly on a changed/context line — anything else
+    is a pre-existing issue outside this PR's diff."""
+    commentable = line_maps.get(finding.path or "", [])
+    if not commentable:
+        return None
+    if finding.line is None:
+        return commentable[0]
+    return finding.line if finding.line in set(commentable) else None
+
+
+def _format_finding(finding) -> str:
+    return (
+        f"**[{finding.scanner}]** `{finding.rule_id}` · {finding.severity}\n\n"
+        f"{finding.message}"
+    )
 
 
 def _parse_dt(s: str) -> datetime:
