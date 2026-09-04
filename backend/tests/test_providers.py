@@ -72,3 +72,15 @@ class TestReviewCreatedWithProvider:
         resp = client.get(f"/api/reviews/{review.id}")
         assert resp.status_code == 200
         assert resp.json()["model_provider"] == "codex"
+
+
+class TestCliTimeout:
+    def test_defaults_to_fifteen_minutes(self, monkeypatch):
+        from app.ai.base import cli_timeout_seconds
+        monkeypatch.delenv("AI_CLI_TIMEOUT_SECONDS", raising=False)
+        assert cli_timeout_seconds() == 900
+
+    def test_reads_env_override(self, monkeypatch):
+        from app.ai.base import cli_timeout_seconds
+        monkeypatch.setenv("AI_CLI_TIMEOUT_SECONDS", "1200")
+        assert cli_timeout_seconds() == 1200

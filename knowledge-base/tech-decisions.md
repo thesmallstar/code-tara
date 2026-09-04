@@ -54,6 +54,15 @@
 
 ---
 
+
+## AI CLI timeout is configurable, default 15 minutes
+
+- **Date:** 2026-09-04
+- **Decision:** Both providers read their `subprocess.run` timeout from `cli_timeout_seconds()` in `app/ai/base.py`, backed by `AI_CLI_TIMEOUT_SECONDS` (default 900). Previously hardcoded to 300 in both `codex.py` and `claude.py`.
+- **Why:** Running several reviews in parallel made large chunks routinely exceed 5 minutes; every timeout surfaced as an `ERROR` chunk that had to be resumed by hand. The limit depends on machine load and chunk size, so it belongs in `.env`, not code.
+- **Alternatives considered:** Retry on timeout inside the provider (hides slow runs and doubles cost); per-chunk adaptive timeout based on diff size (premature — one knob is enough for now).
+- **Trade-offs:** A stuck CLI now holds a worker for up to 15 minutes before the chunk errors. Acceptable for a local single-user tool; lower the value if that hurts.
+
 ## Inline GitHub comments — nearest-line anchoring
 
 - **Date:** 2026-03-01

@@ -1,8 +1,16 @@
 """Abstract base class for AI review providers and provider factory."""
 
+import os
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Optional
+
+DEFAULT_CLI_TIMEOUT_SECONDS = 900
+
+
+def cli_timeout_seconds() -> int:
+    """Wall-clock limit for one AI CLI call, overridable via AI_CLI_TIMEOUT_SECONDS."""
+    return int(os.getenv("AI_CLI_TIMEOUT_SECONDS", DEFAULT_CLI_TIMEOUT_SECONDS))
 
 
 class AIProvider(ABC):
