@@ -3,6 +3,15 @@
 ## Unreleased
 
 - **Date:** 2026-09-04
+- **What:** Overview prompt now requires a structured mermaid architecture diagram; every prompt asks for ASD-STE100 (Simplified Technical English) output
+- **How:**
+  - `backend/app/ai/prompts.py` — `STE_RULES` and `ARCHITECTURE_DIAGRAM_RULES` constants, interpolated into all `DEFAULTS` texts (users see and can edit the full text in the Instructions tab)
+  - `backend/tests/test_prompts.py` — `TestDefaultPromptContent` guards both blocks
+  - `README.md` — feature bullets
+- **Why:** See tech-decisions "Overview always carries an architecture diagram"
+- **Verification:** `uv run pytest` — same 4 pre-existing `test_reviews.py` failures as `main`, everything else passes
+
+- **Date:** 2026-09-04
 - **What:** Configurable AI CLI timeout (`AI_CLI_TIMEOUT_SECONDS`, default 900s) replacing the hardcoded 300s in both providers
 - **How:**
   - `backend/app/ai/base.py` — `cli_timeout_seconds()` reads the env var

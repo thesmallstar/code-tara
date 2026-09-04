@@ -104,3 +104,16 @@ class TestPromptsAPI:
     def test_reset_unknown_prompt_404(self, client):
         res = client.delete("/api/prompts/nonexistent")
         assert res.status_code == 404
+
+
+class TestDefaultPromptContent:
+    def test_every_default_carries_the_ste_rules(self):
+        for key, default in DEFAULTS.items():
+            assert "ASD-STE100" in default["text"], key
+
+    def test_pr_summary_requires_an_architecture_diagram(self):
+        text = DEFAULTS["pr_summary"]["text"]
+        assert "Architecture diagram — required" in text
+        assert "flowchart TD" in text
+        assert '"Review flow"' in text
+        assert "classDef" in text

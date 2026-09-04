@@ -115,6 +115,16 @@
 
 ---
 
+
+## Overview always carries an architecture diagram; all prompts write in ASD-STE100
+
+- **Date:** 2026-09-04
+- **Status:** Decided
+- **Decision:** Prompt-only change in `app/ai/prompts.py`. Two shared blocks, `ARCHITECTURE_DIAGRAM_RULES` and `STE_RULES`, are interpolated into the default prompt texts. `pr_summary` now requires one `flowchart TD` right after the overview: an outer subgraph named after the PR, numbered subgraphs per logical area in reading order, one node per component with a `<br/>` detail line, meaningful shapes (cylinder = stored data, diamond = dispatch), labeled edges, dotted edges for deferred flows, explicit scope and left-out nodes, a separate "Review flow" lane of numbered steps, and per-area `classDef` colors. `STE_RULES` (Simplified Technical English: short active sentences, one term per concept, commands for instructions, no hedging) is appended to every prompt.
+- **Why:** Reviewers asked for a map of the change before reading diffs; a consistent diagram shape makes overviews comparable across PRs. STE keeps comments uniform in tone and easy to act on, which matters when a review has dozens of AI-suggested comments.
+- **Alternatives considered:** Generating the diagram in code from the chunk plan (deterministic but blind to real architecture); a separate "diagram" prompt and API call (extra latency and cost per review; the summary call already reads the repo). A frontend-side renderer for a custom JSON graph (mermaid already works and stays editable by the user).
+- **Trade-offs:** Longer prompts (about +1.5k chars per call). A model may produce non-rendering mermaid; `Mermaid.jsx` already falls back to showing the source. Users with a custom `pr_summary` override in `data/prompts.json` do not get the new default until they reset it from the Instructions tab.
+
 ## Mermaid diagrams in AI output
 
 - **Date:** 2026-03-22

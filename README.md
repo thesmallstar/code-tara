@@ -27,7 +27,8 @@ Paste a GitHub PR link → tara reads the whole diff, groups changes into logica
 - **Dual AI providers** — choose between Claude Code or Codex per review. Switch providers on the fly from the UI.
 - **No API keys** — uses `claude` or `codex` CLI and `gh` CLI. Auth happens through the tools you already have.
 - **Inline draft indicators** — 💬 icons on diff lines show where tara has draft comments. Click to expand, edit, send, or delete right there on the diff.
-- **Mermaid diagrams** — tara can include mermaid diagrams in summaries and assessments to visualize complex flows. Rendered inline automatically.
+- **Architecture diagram in every overview** — the PR summary always includes a mermaid flowchart: components grouped by area, labeled data flows, the PR's scope boundary, and a numbered review-flow lane that tells you where to start. Chunk assessments may add diagrams too. Rendered inline automatically.
+- **Simplified Technical English** — every prompt asks tara to write in ASD-STE100 style: short active sentences, one term per concept, instructions as commands. Comments read the same way across a whole review.
 - **Customizable instructions** — edit the prompts tara uses for reviews, summaries, and chat from the Instructions tab on the landing page.
 - **Search & pagination** — search recent reviews by repo, title, or author.
 - **Fully local** — SQLite database, cloned repos stay on your machine, nothing leaves except GitHub API calls.
