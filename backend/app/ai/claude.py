@@ -12,7 +12,7 @@ import subprocess
 from pathlib import Path
 from typing import Optional
 
-from app.ai.base import AIProvider, ProviderRegistry
+from app.ai.base import AIProvider, ProviderRegistry, cli_timeout_seconds
 from app.ai.prompts import get_prompt
 from app.github.diff_parser import nearest_commentable_line
 
@@ -112,7 +112,7 @@ def _run_claude(
             cmd,
             capture_output=True,
             text=True,
-            timeout=300,
+            timeout=cli_timeout_seconds(),
             env=env,
             cwd=str(cwd) if cwd else None,
         )

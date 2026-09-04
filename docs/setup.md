@@ -50,6 +50,9 @@ GITHUB_TOKEN=ghp_...
 
 # SQLite location (default: ./data/code-tara.db)
 DATABASE_URL=sqlite:///./data/code-tara.db
+
+# Max seconds one AI CLI call (claude / codex) may run before tara marks the chunk as errored (default: 900)
+AI_CLI_TIMEOUT_SECONDS=900
 ```
 
 ### 4. Install dependencies

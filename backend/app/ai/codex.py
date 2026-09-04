@@ -11,7 +11,7 @@ import tempfile
 from pathlib import Path
 from typing import Optional
 
-from app.ai.base import AIProvider, ProviderRegistry
+from app.ai.base import AIProvider, ProviderRegistry, cli_timeout_seconds
 from app.ai.claude import (
     _parse_chunk_plan,
     _validate_and_anchor_comments,
@@ -127,7 +127,7 @@ def _run_codex(
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=300,
+                timeout=cli_timeout_seconds(),
             )
         except FileNotFoundError:
             raise RuntimeError(

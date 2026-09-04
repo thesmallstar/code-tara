@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **Date:** 2026-09-04
+- **What:** Configurable AI CLI timeout (`AI_CLI_TIMEOUT_SECONDS`, default 900s) replacing the hardcoded 300s in both providers
+- **How:**
+  - `backend/app/ai/base.py` — `cli_timeout_seconds()` reads the env var
+  - `backend/app/ai/codex.py`, `backend/app/ai/claude.py` — `subprocess.run(..., timeout=cli_timeout_seconds())`
+  - `docs/setup.md` — documented under "Available overrides"
+- **Why:** Parallel reviews pushed large chunks past 5 minutes and left them as `ERROR` chunks (see tech-decisions)
+- **Verification:** `uv run pytest` — same 4 pre-existing `test_reviews.py` failures as `main`, everything else passes
+
 - **Date:** 2026-08-04
 - **What:** Optional security scanners (opengrep, gitleaks, osv-scanner, checkov) with inline findings, plus a fix for stale re-review checkouts
 - **How:**
